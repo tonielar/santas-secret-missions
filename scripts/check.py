@@ -46,6 +46,11 @@ def check():
  assert 'data-mode="test"' in (ROOT/'dev/test.html').read_text()
  assert 'rel="manifest"' not in (ROOT/'dev/test.html').read_text()
  assert 'path: dist' in (ROOT/'.github/workflows/deploy.yml').read_text()
- assert not (ROOT/'LICENSE').exists(),'Licence approval is still pending'
+ assert (ROOT/'LICENSE').is_file() and 'MIT License' in (ROOT/'LICENSE').read_text(),'Approved MIT license must ship in repository'
+ about=(ROOT/'about.html').read_text()
+ assert '<html lang="en">' in about and 'santa-language-2026' in about and 'data-lang="da"' in about and 'data-lang="sv"' in about
+ assert './' in about and 'tonielar/santas-secret-missions' in about
+ assert (dist/'about.html').read_bytes()==(ROOT/'about.html').read_bytes(),'The public landing page must be deployed'
+ Assets().feed(about)
  print('PASS: 12 missions, 36 unique hints, 7 rules, manifest/icons, asset references and production-only packaging')
 if __name__=='__main__':check()
