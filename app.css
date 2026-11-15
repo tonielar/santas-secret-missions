@@ -48,3 +48,39 @@
 .language-flag:focus-visible{outline:3px solid #6d3fbb;outline-offset:3px}
 @media(max-width:700px){header{flex-wrap:wrap}.top-actions{flex-wrap:wrap;justify-content:flex-end}.top-actions .language-flags{padding-left:7px;margin-left:0}.language-flag{min-width:36px;min-height:36px;font-size:21px}}
 @media(max-width:410px){.top-actions{width:100%;justify-content:space-between}.top-actions .language-flags{border-left:none;padding-left:0}.top-actions .language-flag{min-width:33px}}
+
+/* Warm gold handbook button, without changing other navigation controls. */
+.top-actions .gold-rules-button{background:linear-gradient(145deg,#fff6ce 0%,#f7df8f 58%,#efcb62 100%);border:1px solid #d3a448;color:#704721;box-shadow:0 2px 0 #dbb65c55,0 4px 13px #9b713020}
+.top-actions .gold-rules-button:hover{background:linear-gradient(145deg,#fff9df,#f6db80);border-color:#c99b38}
+.top-actions .gold-rules-button:focus-visible{outline:3px solid #6d3fbb;outline-offset:4px}
+
+/* Winter wonderland: falling snow passes in front of the village rooftops and doors.
+   The overlay is decorative and cannot intercept clicks or touch gestures. */
+.village-snowfall{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;border-radius:inherit}
+.village-snowflake{position:absolute;top:-25px;left:var(--snow-left);height:var(--snow-size);width:var(--snow-size);border-radius:50%;background:#fff;opacity:var(--snow-opacity);box-shadow:0 0 3px #fff7f0,0 0 5px #e8f1ff9c;animation:villageSnowFall var(--snow-duration) linear infinite;animation-delay:var(--snow-delay);will-change:transform}
+@keyframes villageSnowFall{0%{transform:translate3d(0,-15px,0)}100%{transform:translate3d(var(--snow-drift),calc(100vh + 450px),0)}}
+@media(prefers-reduced-motion:reduce){.village-snowfall{display:none!important}}
+
+/* One-time welcome setup, independent of the story and existing accounts. */
+.welcome-setup-dialog{width:min(510px,calc(100vw - 24px));border:0;padding:0;border-radius:26px;background:#fffafa;max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 25px 100px #59314965}
+.welcome-setup-dialog::backdrop{background:#412839b8;backdrop-filter:blur(8px)}
+.setup-card{padding:26px 30px 25px;text-align:center;background:radial-gradient(ellipse at top,#fff0f0 0%,#fffaf8 68%);}
+.setup-sparkles{color:#dba343;letter-spacing:11px;display:block;font-size:19px}
+.setup-elf-seal{font-size:48px;line-height:1.4}
+.setup-eyebrow{color:#a84a6d;font-weight:bold;font-size:10px;letter-spacing:1.9px;margin:5px 0 12px}
+.setup-card h2{font-size:clamp(24px,4vw,32px);line-height:1.12;color:#8d2852;letter-spacing:-.8px;margin:0 auto 12px;max-width:390px}
+.setup-card>p:not(.setup-eyebrow):not(.setup-privacy){color:#735263;font-size:14px;line-height:1.6;max-width:390px;margin:0 auto 19px}
+.setup-languages{border:0;margin:0 0 17px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.setup-languages legend{float:none;width:100%;font-weight:bold;font-size:13px;text-align:left;margin:0 0 11px;color:#66344f}
+.setup-languages label{cursor:pointer;position:relative;min-width:0}
+.setup-languages input{position:absolute;opacity:0;pointer-events:none}
+.setup-languages label span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:13px 7px;min-height:80px;border:2px solid #e8cfda;border-radius:14px;background:white;color:#75425c;font-size:25px}
+.setup-languages label b{font-size:12px}
+.setup-languages input:checked+span{border-color:#b63f6b;background:#ffecf2;box-shadow:0 0 0 2px #e9bed0}
+.setup-languages input:focus-visible+span{outline:3px solid #6d3fbb;outline-offset:3px}
+.setup-name-label{display:block;text-align:left;font-weight:bold;font-size:13px;color:#66344f;margin-bottom:8px}
+#setup-name{display:block;width:100%;min-height:47px;border:1px solid #e0bfcf;border-radius:12px;background:#fff;padding:12px 14px;font-size:16px;color:#54283f;margin:0 0 18px}
+#setup-name:focus{outline:3px solid #d6a3bf;outline-offset:2px}
+#setup-begin{width:100%;justify-content:center}
+.setup-privacy{font-size:11px;color:#856e78;line-height:1.6;margin:18px 0 0}
+@media(max-width:500px){.setup-card{padding:22px 20px}.setup-languages{gap:7px}.setup-languages label span{padding:12px 4px;min-height:76px}.setup-languages label b{font-size:11px}}
