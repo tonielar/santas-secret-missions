@@ -39,3 +39,12 @@
 .mission-task>.support-row .rules-reminder{color:#8d305a;background:#fbe2ec;border:1px solid #e8bcd0}
 .mission-task>.support-row .help-btn{background:#fff0d0;border:1px solid #e8c980}
 @media(max-width:600px){.mission-task>.support-row{flex-direction:column;gap:11px;margin-top:24px}.mission-task>.support-row .rules-reminder,.mission-task>.support-row .help-btn{width:100%;flex:auto;order:initial}}
+
+/* Language flags: compact, discoverable and touch-friendly. */
+.top-actions .language-flags{display:inline-flex;gap:5px;align-items:center;margin-left:3px;border-left:1px solid #e6cbd3;padding-left:11px}
+.language-flag{min-height:38px;min-width:37px;padding:5px 4px;border:2px solid transparent;border-radius:11px;background:transparent;font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,transform .15s}
+.language-flag:hover{background:#fff;border-color:#f3c6d8}
+.language-flag[aria-pressed="true"]{background:#fff;border-color:#d06e93;box-shadow:0 2px 6px #aa668833}
+.language-flag:focus-visible{outline:3px solid #6d3fbb;outline-offset:3px}
+@media(max-width:700px){header{flex-wrap:wrap}.top-actions{flex-wrap:wrap;justify-content:flex-end}.top-actions .language-flags{padding-left:7px;margin-left:0}.language-flag{min-width:36px;min-height:36px;font-size:21px}}
+@media(max-width:410px){.top-actions{width:100%;justify-content:space-between}.top-actions .language-flags{border-left:none;padding-left:0}.top-actions .language-flag{min-width:33px}}
