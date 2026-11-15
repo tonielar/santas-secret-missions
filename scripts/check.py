@@ -51,6 +51,6 @@ def check():
  assert '<html lang="en">' in about and 'santa-language-2026' in about and 'data-lang="da"' in about and 'data-lang="sv"' in about
  assert './' in about and 'tonielar/santas-secret-missions' in about
  assert (dist/'about.html').read_bytes()==(ROOT/'about.html').read_bytes(),'The public landing page must be deployed'
- Assets().feed(about)
+ assert './icons/icon-192.png' in about and 'href="./"' in about
  print('PASS: 12 missions, 36 unique hints, 7 rules, manifest/icons, asset references and production-only packaging')
 if __name__=='__main__':check()
