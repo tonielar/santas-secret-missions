@@ -33,10 +33,10 @@
     const direct = tr(text);
     if (direct !== text) return direct;
     let match;
-    if ((match = /^MISSION (\\d+) \\/ 12 · DECEMBER (\\d+)$/.exec(text))) return phrase(text, 'MISSION '+match[1]+' / 12 · '+match[2]+'. DECEMBER', 'UPPDRAG '+match[1]+' / 12 · '+match[2]+' DECEMBER');
-    if ((match = /^MISSION (\\d+) · DECEMBER (\\d+)$/.exec(text))) return phrase(text, 'MISSION '+match[1]+' · '+match[2]+'. DECEMBER', 'UPPDRAG '+match[1]+' · '+match[2]+' DECEMBER');
-    if ((match = /^DEC (\\d+)$/.exec(text))) return text; // Date labels intentionally concise in all languages
-    if ((match = /^(\\d+) KB · Saved on this device$/.exec(text))) return match[1]+' KB · '+phrase('Saved on this device','Gemt på denne enhed','Sparat på den här enheten');
+    if ((match = /^MISSION (\d+) \/ 12 · DECEMBER (\d+)$/.exec(text))) return phrase(text, 'MISSION '+match[1]+' / 12 · '+match[2]+'. DECEMBER', 'UPPDRAG '+match[1]+' / 12 · '+match[2]+' DECEMBER');
+    if ((match = /^MISSION (\d+) · DECEMBER (\d+)$/.exec(text))) return phrase(text, 'MISSION '+match[1]+' · '+match[2]+'. DECEMBER', 'UPPDRAG '+match[1]+' · '+match[2]+' DECEMBER');
+    if ((match = /^DEC (\d+)$/.exec(text))) return text; // Date labels intentionally concise in all languages
+    if ((match = /^(\d+) KB · Saved on this device$/.exec(text))) return match[1]+' KB · '+phrase('Saved on this device','Gemt på denne enhed','Sparat på den här enheten');
     return text;
   };
   function translateNode(node) {
