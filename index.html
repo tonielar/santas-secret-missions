@@ -36,7 +36,7 @@ try {
 <div class="snowfall" id="snow" aria-hidden="true"></div>
 <header>
  <div class="brand"><div class="brand-mark" aria-hidden="true">✦</div><div class="brand-word">NORTH POLE<br><span>INVENTOR CLUB</span></div></div>
- <nav class="top-actions" aria-label="Calendar tools"><button class="soft-btn intro-btn" data-action="intro">The story</button><button class="soft-btn install-trigger" data-action="install">Install</button><button class="soft-btn" data-action="rules"><span aria-hidden="true">✧</span> Golden Rules</button></nav>
+ <nav class="top-actions" aria-label="Calendar tools"><button class="soft-btn intro-btn" data-action="intro">The story</button><button class="soft-btn install-trigger" data-action="install">Install</button><button class="soft-btn" data-action="rules"><span aria-hidden="true">✧</span> Golden Rules</button><div class="language-flags" role="group" aria-label="Choose calendar language"><button class="language-flag" type="button" data-lang="en" aria-label="English" title="English">🇬🇧</button><button class="language-flag" type="button" data-lang="da" aria-label="Dansk" title="Dansk">🇩🇰</button><button class="language-flag" type="button" data-lang="sv" aria-label="Svenska" title="Svenska">🇸🇪</button></div></nav>
 </header>
 <div id="test-label" class="test-label" hidden>TEST MODE — ALL DOORS UNLOCKED</div>
 <section class="hero" aria-labelledby="title">
@@ -90,6 +90,10 @@ try {
 <noscript><p style="padding:30px;text-align:center">Please enable JavaScript in your browser to open the advent doors. The calendar can work offline after its first successful online visit.</p></noscript>
 
 <script defer src="./content.js"></script>
+<script defer src="./locale-da.js"></script>
+<script defer src="./locale-sv.js"></script>
+<script defer src="./locale-ui.js"></script>
+<script defer src="./i18n.js"></script>
 <script defer src="./storage.js"></script>
 <script defer src="./preview.js"></script>
 <script defer src="./app.js"></script>
