@@ -3,7 +3,7 @@
 from pathlib import Path
 import hashlib,json,re,shutil,base64
 ROOT=Path(__file__).resolve().parents[1]
-ASSETS=['index.html','app.css','content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png','icons/icon.svg']
+ASSETS=['index.html','about.html','app.css','content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png','icons/icon.svg']
 
 def build():
  digest=hashlib.sha256()
