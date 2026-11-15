@@ -1,8 +1,8 @@
 # Santa's Secret Missions 🎅
 
-A Christmas invention adventure for Olivia and other curious children aged roughly 12–15. Twelve doors open every other day, December 1–23, 2026. Each assignment helps a child plan, build, test and improve something using AI. Every **mission creation** is one standalone HTML file; the calendar itself is a small installable PWA.
+A shareable Christmas invention adventure for curious children aged roughly 12–15. Twelve doors open every other day, December 1–23, 2026. Each assignment helps a child plan, build, test and improve something using AI. Every **mission creation** is one standalone HTML file; the calendar itself is a small installable PWA.
 
-The original North Pole village, Santa artwork and readable mission panels have been preserved. This upgrade adds a local inventor's workbench, isolated interactive previews, installation help, offline caching, a two-step welcome and clearer door states.
+The original North Pole village, Santa artwork and readable mission panels have been preserved. The app includes a first-visit name/language setup (English, Danish and Swedish), a local inventor's workbench, isolated interactive previews, installation help, offline caching, and a snowy North Pole village.
 
 ## Start here
 
@@ -56,14 +56,14 @@ Edit readable source files at the project root. The approved copy is in `content
 
 Run `python3 scripts/build.py` before deploying. It creates a content-derived service-worker version and an allowlisted `dist/` folder. The workflow publishes **only `dist/`**, never `dev/`, documentation, test files or locally imported creations. The service worker caches a complete version together, offers an update, and activates the replacement when the user chooses **Update app**. The app checks for updates when it returns to the foreground. Updates do not delete local stars or creations.
 
-There are no secret test switches or unlocked links in the production app. All mission copy exists in the static source; date locking is a family calendar feature, not a security boundary.
+The production app has a hidden, device-local owner test switch for previewing unlocked doors. Test stars and creations use separate local storage. All mission copy exists in the static source; date locking is a family calendar feature, not a security boundary.
 
 ## Source map
 
 | File | Purpose |
 | --- | --- |
 | `index.html`, `app.css` | Preserved village artwork and accessible dialogs |
-| `content.js` | All approved missions, help text and Golden Rules |
+| `content.js`, `locale-*.js`, `i18n.js` | Original missions, translations and language selection |
 | `app.js` | Calendar, onboarding, completion and local file controls |
 | `storage.js` | IndexedDB operations and transaction-safe saves |
 | `preview.js` | Untrusted HTML preparation, sandbox and status messages |
@@ -75,9 +75,15 @@ There are no secret test switches or unlocked links in the production app. All m
 | `dev/test.html` | Unlocked local test build; excluded from Pages |
 | `.github/workflows/deploy.yml` | Build, validate and deploy production only |
 
-## Licence decision pending
+## Open source — fork and make it your own 🎄
 
-MIT is proposed in [docs/LICENSE-PROPOSAL.md](docs/LICENSE-PROPOSAL.md). Tonie has **not** approved it, so no operative `LICENSE` grant has been added. The project is ready for a public repository, but should not be described as MIT-licensed or freely redistributable until that decision is made.
+**Santa's Secret Missions is open source under the [MIT License](LICENSE).** You are welcome to use it, fork it, translate it, customize the missions and artwork, and publish a different version of your own. Keep the copyright and license notice in copies or substantial portions of the source.
+
+Want to improve the original calendar? We welcome **pull requests**! See [CONTRIBUTING.md](CONTRIBUTING.md) for how to fork, run the checks and submit changes.
+
+**Live app:** https://tonielar.github.io/santas-secret-missions/
+
+Each visitor's names, progress, language preference, saved HTML creations and offline cache are stored in that visitor's own browser/device, not shared with other visitors. A fork doesn't affect this original site.
 
 ## Reference documentation
 
