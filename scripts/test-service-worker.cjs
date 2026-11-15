@@ -47,7 +47,8 @@ async function request(url, options={}) {
   const prefix=current.slice(0,current.lastIndexOf('-')+1);
   assert.equal(skipped,0,'A newly installed update must not activate without consent');
   const cache=stores.get(current);
-  assert.equal(cache.size,13,'Every shell asset must be precached');
+  const assetList = JSON.parse(source.match(/^const ASSETS = (\[.*\]);$/m)[1]);
+  assert.equal(cache.size,assetList.length,'Every shell asset must be precached');
   const offline=await request(scope,{mode:'navigate'});
   assert.match(await offline.text(),/cached:.*index\.html/);
   const asset=await request(scope+'app.js');
