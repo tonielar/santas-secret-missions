@@ -434,6 +434,25 @@
   }
 
   readState();
+  // Opening the hidden tester must never feel like losing the real calendar.
+  // Borrow only the existing visitor's name and onboarding state; NEVER copy
+  // completed missions, opened doors or uploaded creations into test mode.
+  if (TEST_MODE) {
+    try {
+      const normalRaw = localStorage.getItem('santas-secret-missions-2026-olivia');
+      const normal = normalRaw ? JSON.parse(normalRaw) : null;
+      if (normal && typeof normal.name === 'string' && normal.name.trim()
+          && normal.setupComplete !== false) {
+        if (!state.name) state.name = normal.name.trim().slice(0, 32);
+        if (!state.setupComplete || !state.onboarded) {
+          state.setupComplete = true;
+          state.onboarded = true;
+          state.onboardingStep = 'letter';
+          saveState(); // Writes only to the isolated test key.
+        }
+      }
+    } catch (_) { /* Normal and test progress remain safe if storage is unavailable. */ }
+  }
   $('tester-banner').hidden = !LOCAL_TEST;
   let secretTaps = 0;
   let secretTapTime = 0;
