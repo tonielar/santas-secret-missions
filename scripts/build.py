@@ -3,7 +3,7 @@
 from pathlib import Path
 import hashlib,json,re,shutil,base64
 ROOT=Path(__file__).resolve().parents[1]
-ASSETS=['index.html','app.css','content.js','storage.js','preview.js','app.js','pwa.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png','icons/icon.svg']
+ASSETS=['index.html','app.css','content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png','icons/icon.svg']
 
 def build():
  digest=hashlib.sha256()
@@ -21,7 +21,7 @@ def build():
  (ROOT/'dev/qa.html').write_text(test.replace('</body>','<script defer src="./qa-fixtures.js"></script></body>'))
  # A convenient offline test download, still excluded from the public artifact.
  standalone=test.replace('<link rel="stylesheet" href="../app.css">','<style>'+ (ROOT/'app.css').read_text() +'</style>')
- for filename in ['content.js','storage.js','preview.js','app.js','pwa.js']:
+ for filename in ['content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js']:
   standalone=standalone.replace('<script defer src="../'+filename+'"></script>','<script>'+ (ROOT/filename).read_text().replace('</script','<\\/script') +'</script>')
  icon='data:image/png;base64,'+base64.b64encode((ROOT/'icons/icon-192.png').read_bytes()).decode()
  apple='data:image/png;base64,'+base64.b64encode((ROOT/'icons/apple-touch-icon.png').read_bytes()).decode()
