@@ -2,6 +2,8 @@
 (() => {
   'use strict';
   const TEST_MODE = document.body.dataset.mode === 'test';
+  const OWNER_TEST_KEY = 'santa-owner-test-2026';
+  const LOCAL_TEST = (() => { try { return localStorage.getItem(OWNER_TEST_KEY) === 'on'; } catch (_) { return false; } })();
   const DATA = window.SantaContent;
   // Keep the earlier calendar's keys so same-origin upgrades retain names and stars.
   const STORAGE_KEY = `santas-secret-missions-2026-${TEST_MODE ? 'test' : 'olivia'}`;
@@ -359,6 +361,26 @@
   }
 
   readState();
+  $('tester-banner').hidden = !LOCAL_TEST;
+  let secretTaps = 0;
+  let secretTapTime = 0;
+  $('tester-secret').addEventListener('click', () => {
+    if (LOCAL_TEST) return;
+    if (Date.now() - secretTapTime > 4500) secretTaps = 0;
+    secretTapTime = Date.now();
+    if (++secretTaps < 7) return;
+    secretTaps = 0;
+    try {
+      localStorage.setItem(OWNER_TEST_KEY, 'on');
+      location.reload();
+    } catch (_) { toast('Test mode requires browser storage. Try a normal browser window.'); }
+  });
+  $('exit-test-mode').addEventListener('click', () => {
+    try {
+      localStorage.removeItem(OWNER_TEST_KEY);
+      location.reload();
+    } catch (_) { toast('Could not disable test mode. Check browser storage settings.'); }
+  });
   $('test-label').hidden = !TEST_MODE;
   $('storage-warning').hidden = storageOK;
   $('rules-list').innerHTML = DATA.rules.map(rule => `<section class="rule"><div><h3>${rule.title}</h3>${rule.body}</div></section>`).join('');
