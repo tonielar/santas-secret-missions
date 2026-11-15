@@ -58,7 +58,7 @@
    The overlay is decorative and cannot intercept clicks or touch gestures. */
 .village-snowfall{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;border-radius:inherit}
 .village-snowflake{position:absolute;top:-25px;left:var(--snow-left);height:var(--snow-size);width:var(--snow-size);border-radius:50%;background:#fff;opacity:var(--snow-opacity);box-shadow:0 0 3px #fff7f0,0 0 5px #e8f1ff9c;animation:villageSnowFall var(--snow-duration) linear infinite;animation-delay:var(--snow-delay);will-change:transform}
-@keyframes villageSnowFall{0%{transform:translate3d(0,-15px,0)}100%{transform:translate3d(var(--snow-drift),calc(100vh + 450px),0)}}
+@keyframes villageSnowFall{0%{transform:translate3d(0,-15px,0)}100%{transform:translate3d(var(--snow-drift),var(--snow-travel),0)}}
 @media(prefers-reduced-motion:reduce){.village-snowfall{display:none!important}}
 
 /* One-time welcome setup, independent of the story and existing accounts. */
