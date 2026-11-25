@@ -83,8 +83,11 @@ def onboard(p, variant):
     assert p.evaluate('VillageCalendar.elf()') == variant
 
 def five_taps(p, selector):
-    # Synthetic clicks avoid mistaking animation or test-driver latency for user timing.
-    p.locator(selector).evaluate('(corner) => { for(let i=0;i<5;i++)corner.click() }')
+    # Verify the real crescent is visible and can be clicked, then complete the timed gesture.
+    moon=p.locator(selector)
+    expect(moon).to_be_visible(timeout=15000)
+    moon.click()
+    moon.evaluate('(target) => { for(let i=0;i<4;i++)target.click() }')
     expect(p.locator('body')).to_have_attribute('data-mode','test')
 
 def run(browser):
@@ -124,7 +127,7 @@ def run(browser):
     touch_door();visible(p,'#toast')
     assert 'December 1, 2026' in p.locator('#toast').inner_text()
     p.locator('#v-enter').click();expect(p.locator('#mission-dialog')).to_be_hidden()
-    choose(p,0);five_taps(p,'#square-corner');visible(p,'#v-canvas')
+    choose(p,0);five_taps(p,'#square-moon');visible(p,'#v-canvas')
     assert p.evaluate('Array.from({length:12},(_,i)=>VillageCalendar.status(i+1).ready).every(Boolean)')
     # Observe the actual central camera through the renderer in this test page.
     p.evaluate('''async () => {
@@ -217,7 +220,7 @@ def run(browser):
 
     p=setup(browser,390,844,is_mobile=True,has_touch=True)
     p.goto(ORIGIN);visible(p,'#welcome-setup-dialog');shot(p,'invitation-mobile')
-    five_taps(p,'#invitation-corner');onboard(p,'female');choose(p,0);p.wait_for_timeout(650);shot(p,'welcome-mobile')
+    five_taps(p,'#invitation-moon');onboard(p,'female');choose(p,0);p.wait_for_timeout(650);shot(p,'welcome-mobile')
     print('Mobile viewport frame timing',json.dumps(timing(p)),flush=True)
     assert p.evaluate('document.documentElement.scrollWidth <= innerWidth')
     cdp=p.context.new_cdp_session(p)
@@ -241,7 +244,7 @@ def verify_owner_workbench(browser):
     page=setup(browser,reduced_motion='reduce')
     page.goto(ORIGIN)
     visible(page,'#welcome-setup-dialog')
-    five_taps(page,'#invitation-corner')
+    five_taps(page,'#invitation-moon')
     onboard(page,'male')
     for n in range(1,13):
         choose(page,n)
@@ -261,7 +264,7 @@ def verify_owner_workbench(browser):
     visible(page,'#welcome-setup-dialog')
     assert page.evaluate('VillageCalendar.progress()')==0
     assert page.evaluate('SantaStorage.get(12).then(record=>!record)')
-    five_taps(page,'#invitation-corner')
+    five_taps(page,'#invitation-moon')
     visible(page,'#v-canvas');expect(page.locator('#welcome-setup-dialog')).to_be_hidden()
     assert page.evaluate('VillageCalendar.progress()')==1
     assert page.evaluate('SantaStorage.get(12).then(record=>record.filename)')=='owner.html'

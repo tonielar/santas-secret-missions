@@ -304,15 +304,19 @@
   }
 }
 
-#invitation-corner {
+#invitation-moon {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 36px;
-  height: 36px;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   z-index: 5;
   touch-action: manipulation;
+  user-select: none;
 }
+#invitation-moon svg { pointer-events: none; }
 
 #setup-exit-owner {
   border: 0;

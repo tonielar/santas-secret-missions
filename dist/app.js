@@ -487,7 +487,7 @@
     } catch (_) { toast('Test mode requires browser storage. Try a normal browser window.'); }
   }
   $('tester-secret').addEventListener('click', ownerTap);
-  $('invitation-corner').addEventListener('click', ownerTap);
+  $('invitation-moon').addEventListener('click', ownerTap);
   $('exit-test-mode').addEventListener('click', () => {
     try {
       localStorage.removeItem(OWNER_TEST_KEY);

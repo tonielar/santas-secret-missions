@@ -883,9 +883,9 @@ body.village-on .v-marker[hidden],
     opacity: 1;
   }
 }
-.owner-corner{position:absolute;bottom:0;right:0;width:36px;height:36px;z-index:5;touch-action:manipulation}
+#square-moon{position:absolute;width:48px;height:48px;transform:translate(-50%,-50%);z-index:5;touch-action:manipulation;user-select:none}
+#square-moon[hidden]{display:none}
 .setup-card{position:relative}
-#paper-village:not([data-stop="0"]) #square-corner{display:none}
 .elf-menu-picker{border:0;border-top:1px solid #d6cfba;margin:12px 0 20px;padding:8px 0;color:#263e37;font-size:14px}
 .elf-menu-picker legend{font-weight:650;padding-right:8px}
 .elf-menu-picker label{display:inline-flex;align-items:center;gap:4px;margin-right:12px}

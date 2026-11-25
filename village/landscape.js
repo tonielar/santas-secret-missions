@@ -342,6 +342,7 @@ function addMobiles(root) {
     cords = [],
     dots = [],
     rng = random(891);
+  let ownerMoon;
   for (let n = 0; n < COUNT; n++) {
     const angle = n * STEP,
       local = (x, y, z = 0) => [
@@ -378,6 +379,7 @@ function addMobiles(root) {
       obj.rotation.y = -angle;
       obj.rotation.z = -0.24;
       root.add(obj);
+      if (n === 0) ownerMoon = obj;
       cords.push(...local(-2.9, 11.51), ...local(-2.9, 25));
     }
   }
@@ -400,6 +402,7 @@ function addMobiles(root) {
       new T.PointsMaterial({ color: '#f1dfac', size: 0.073, transparent: true, opacity: 0.85 }),
     ),
   );
+  return ownerMoon;
 }
 
 export function createLandscape(scene) {
@@ -420,6 +423,6 @@ export function createLandscape(scene) {
     new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide }),
     'Thirteen painted backdrops',
   );
-  addMobiles(root);
-  return { treeHits: growTrees(root), lights: [] };
+  const ownerMoon = addMobiles(root);
+  return { treeHits: growTrees(root), lights: [], ownerMoon };
 }

@@ -54,6 +54,7 @@ export function createWorld(canvas, lang, events) {
   hitTargets.push(santa.root, elf.root);
   const pad = document.querySelector('#v-stage'),
     tag = document.querySelector('#v-marker'),
+    moonTap = document.querySelector('#square-moon'),
     reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let returnAngle = 0,
     target = 0,
@@ -308,6 +309,14 @@ export function createWorld(canvas, lang, events) {
       height,
     );
     camera.updateMatrixWorld();
+    // Track the actual Welcome Square moon as the central camera rotates and zooms.
+    scenery.ownerMoon.getWorldPosition(projection);
+    projection.project(camera);
+    moonTap.hidden = stop !== 0 || zoom !== 0 || Math.abs(projection.x) > 1 || Math.abs(projection.y) > 1 || projection.z < -1 || projection.z > 1;
+    if (!moonTap.hidden) {
+      moonTap.style.left = (projection.x + 1) * 50 + '%';
+      moonTap.style.top = (1 - projection.y) * 50 + '%';
+    }
     backdrop();
     const lightPivot = position(angle, RADIUS, 0);
     sun.target.position.copy(lightPivot);

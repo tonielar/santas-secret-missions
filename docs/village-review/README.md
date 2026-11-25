@@ -18,7 +18,7 @@ The preview uses a separate origin, IndexedDB database names, localStorage keys 
 
 ## Owner testing before December
 
-Tap five times within three seconds in the **bottom-right 36 × 36 pixels** of the welcome invitation. On short screens, scroll to the bottom of the invitation first. After onboarding, the same gesture works in the bottom-right corner of the **Welcome Square scenery**, immediately above the route controls. The page reloads into owner test mode, which opens all twelve doors. On a fresh device, complete the invitation in test mode.
+Tap the small decorative **crescent moon** at the upper right of the welcome invitation five times within three seconds. After onboarding, return to **Welcome Square** and tap its hanging crescent moon five times within three seconds. The trigger follows the visible moon as the camera moves; the former bottom-right hotspots have been removed. The page reloads into owner test mode, which opens all twelve doors. On a fresh device, complete the invitation in test mode.
 
 To exit, open **Village menu → Owner test · Return to real calendar**. If the welcome invitation is open, use its **Owner test · Return to real calendar** control. Normal dates and saved progress return after reload. The owner flag, normal and test progress, and normal and test creation databases stay local to the device.
 
@@ -64,7 +64,7 @@ The automated suite runs Chromium on the built `dist/` folder through a temporar
 | Area | Verified behavior |
 | --- | --- |
 | Build and original content | 12 missions, 36 hints, seven rules, icons, manifest, assets and exclusion of development fixtures |
-| First visit and owner testing | Automatic invitation, both puppet choices, persistence, five-tap entry from both corners, all twelve mission panels, separate progress and uploaded files, and return to normal dates |
+| First visit and owner testing | Automatic invitation, both puppet choices, persistence, five-tap entry from both welcome moons (moon-placement regression test added; rerun pending), all twelve mission panels, separate progress and uploaded files, and return to normal dates |
 | Date boundaries | All 12 local-midnight changes in UTC and Europe/Copenhagen, plus a December 1 browser visit |
 | Circular exploration | All 13 stops, wraparound, reverse navigation, keyboard, wheel, mouse drag and touch swipe |
 | Camera and doors | The camera stays at the center during ordinary navigation, moves for door entry, and returns after closing the panel. Physical clicks on sealed and open doors exercise both states. |

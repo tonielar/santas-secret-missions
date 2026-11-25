@@ -133,12 +133,13 @@ async function start() {
     b.textContent = c.test + ' · ' + c.leaveTest;
     ui.menu.querySelector('.v-menu-items').appendChild(b);
   }
-  const corner = document.createElement('span');
-  corner.className = 'owner-corner';
-  corner.id = 'square-corner';
-  corner.setAttribute('aria-hidden', 'true');
-  ui.shell.querySelector('#v-stage').append(corner);
-  corner.addEventListener('click', api.ownerTap);
+  // A transparent, touch-friendly target follows the visible crescent in the 3D scene.
+  const moon = document.createElement('span');
+  moon.id = 'square-moon';
+  moon.hidden = true;
+  moon.setAttribute('aria-hidden', 'true');
+  ui.shell.querySelector('#v-stage').append(moon);
+  moon.addEventListener('click', api.ownerTap);
   const picker = document.createElement('fieldset');
   const legend = document.createElement('legend');
   const labels = api.elfLabels(lang);
