@@ -403,6 +403,12 @@
     state.elf = value === 'male' ? 'male' : 'female';
     saveState(); window.dispatchEvent(new Event('village-elf'));
   }
+  const preferenceCopy = {
+    en: ['Welcome invitation', 'Save preferences', 'Cancel'],
+    da: ['Velkomstinvitation', 'Gem indstillinger', 'Annuller'],
+    sv: ['Välkomstinbjudan', 'Spara inställningar', 'Avbryt']
+  };
+  let editingSetup = false;
   function setSetupLanguage(language) {
     ['elf-legend','elf-female','elf-male'].forEach((id,i) => $(id).textContent = elfCopy[language][i]);
     const exitLabels = { en: 'Owner test · Return to real calendar', da: 'Ejertest · Tilbage til den rigtige kalender', sv: 'Ägartest · Tillbaka till den riktiga kalendern' };
@@ -416,13 +422,18 @@
         else node.textContent = labels[i];
       }
     });
+    if (editingSetup) $('setup-begin').textContent = preferenceCopy[language][1];
+    $('setup-cancel').textContent = preferenceCopy[language][2];
   }
-  function beginSetup() {
+  function beginSetup(edit = false) {
+    editingSetup = edit && state.setupComplete;
+    $('setup-cancel').hidden = !editingSetup;
     const preferred = window.SantaI18n && window.SantaI18n.lang || 'en';
     const radio = document.querySelector('input[name="setup-language"][value="' + preferred + '"]');
     if (radio) radio.checked = true;
     setSetupLanguage(preferred);
-    $('setup-name').value = '';
+    $('setup-name').value = state.name;
+    document.querySelector('[name="setup-elf"][value="' + (state.elf || 'female') + '"]').checked = true;
     openDialog('welcome-setup-dialog', 'welcome-setup-title');
   }
   function finishSetup(event) {
@@ -434,10 +445,11 @@
     if (!['en','da','sv'].includes(code)) return;
     state.name = name.slice(0,32);
     state.setupComplete = true;
+    if (!editingSetup) {
+      state.onboarded = false;
+      state.onboardingStep = 'letter';
+    }
     setElf(document.querySelector('[name="setup-elf"]:checked').value);
-    state.onboarded = false;
-    state.onboardingStep = 'letter';
-    saveState();
     updateName();
     try { localStorage.setItem('paper-village-language-2026',code); }
     catch (_) { /* Names still work in this session without persistence. */ }
@@ -446,10 +458,11 @@
       return;
     }
     closeDialog('welcome-setup-dialog');
-    setTimeout(() => openIntro(), 0);
+    if (!editingSetup) setTimeout(() => openIntro(), 0);
   }
 
-  $('welcome-setup-dialog').addEventListener('cancel', e => e.preventDefault());
+  $('setup-cancel').addEventListener('click', () => closeDialog('welcome-setup-dialog'));
+  $('welcome-setup-dialog').addEventListener('cancel', e => { if (!editingSetup) e.preventDefault(); });
   readState();
   // Opening the hidden tester must never feel like losing the real calendar.
   // Borrow only the existing visitor's name and onboarding state; NEVER copy
@@ -573,6 +586,7 @@
     },
     progress: () => state.completed.length,
     elf: () => state.elf || 'female', setElf, elfLabels: lang => elfCopy[lang], ownerTap,
+    invitationLabel: lang => preferenceCopy[lang][0], openInvitation: () => beginSetup(true),
     test: TEST_MODE, resumeWelcome, openMission, openRules, openIntro, toast,
     install: () => openDialog('install-dialog', 'install-title')
   });

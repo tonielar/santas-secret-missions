@@ -888,5 +888,5 @@ body.village-on .v-marker[hidden],
 .setup-card{position:relative}
 .elf-menu-picker{border:0;border-top:1px solid #d6cfba;margin:12px 0 20px;padding:8px 0;color:#263e37;font-size:14px}
 .elf-menu-picker legend{font-weight:650;padding-right:8px}
-.elf-menu-picker label{display:inline-flex;align-items:center;gap:4px;margin-right:12px}
+.elf-menu-picker label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 8px;cursor:pointer}
 .elf-menu-picker input{accent-color:#8d3734}

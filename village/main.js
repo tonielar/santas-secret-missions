@@ -79,6 +79,9 @@ async function start() {
       case 'next':
         world.navigate(1);
         break;
+      case 'invitation':
+        api.openInvitation();
+        break;
       case 'story':
         if (!api.resumeWelcome()) api.openIntro();
         break;
@@ -126,6 +129,10 @@ async function start() {
         document.querySelector('#classic-view [data-lang="' + b.dataset.code + '"]')?.click();
       }
     });
+  const invitation = document.createElement('button');
+  invitation.dataset.do = 'invitation';
+  invitation.textContent = api.invitationLabel(lang);
+  ui.menu.querySelector('.v-menu-items').prepend(invitation);
   if (api.test) {
     ui.shell.querySelector('.v-foot>span').append(' · ' + c.test);
     const b = document.createElement('button');

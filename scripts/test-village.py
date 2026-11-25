@@ -148,12 +148,12 @@ def run(browser):
             if abs(p.evaluate('cameraTrace.fov')-fov)<.04:return
             p.wait_for_timeout(100)
         raise AssertionError(('Camera did not settle',p.evaluate('cameraTrace'),fov))
-    base=p.evaluate("Math.max(30,2*Math.atan(13.5/(29*(document.querySelector('#v-canvas').clientWidth/document.querySelector('#v-canvas').clientHeight)))*180/Math.PI)")
+    base=p.evaluate("Math.max(30,2*Math.atan(13.5/(29*(document.querySelector('#v-canvas').clientWidth/document.querySelector('#v-canvas').clientHeight)))*180/Math.PI)-8")
     settle_camera(base)
     front=p.evaluate('cameraTrace.fov');p.mouse.move(bounds['x']+bounds['width']*.78,bounds['y']+bounds['height']*.61)
     p.locator('#v-canvas').dispatch_event('wheel', {'deltaX':225,'deltaMode':0})
     p.wait_for_timeout(1800)
-    assert p.evaluate('cameraTrace.fov') > front+7.5, (front,p.evaluate('cameraTrace'),p.locator('dialog[open]').count())
+    assert abs(p.evaluate('cameraTrace.fov') - (front+16)) < .5, (front,p.evaluate('cameraTrace'),p.locator('dialog[open]').count())
     p.wait_for_timeout(800);shot(p,'between-sectors')
     assert p.evaluate('cameraTrace.maximum') < .001
     choose(p,2);settle_camera(base);p.wait_for_timeout(500)
@@ -191,6 +191,31 @@ def run(browser):
         if p.evaluate('cameraTrace.radius') < .02:break
     assert p.evaluate('cameraTrace.radius') < .02
     shot(p,'completed-forest')
+    # Reopen the original invitation and change all three preferences with a saved mission and file.
+    p.locator('.v-menu').click();p.locator('[data-do="invitation"]').click()
+    visible(p,'#welcome-setup-dialog')
+    expect(p.locator('#setup-name')).to_have_value('Robin')
+    expect(p.locator('[name="setup-elf"][value="female"]')).to_be_checked()
+    p.locator('#setup-name').fill('Discard this')
+    p.locator('#setup-cancel').click()
+    p.locator('.v-menu').click();p.locator('[data-do="invitation"]').click()
+    expect(p.locator('#setup-name')).to_have_value('Robin')
+    p.locator('#setup-name').fill('Morgan')
+    p.locator('label:has([name="setup-elf"][value="male"])').click()
+    p.locator('label:has([name="setup-language"][value="da"])').click()
+    expect(p.locator('#setup-begin')).to_have_text('Gem indstillinger')
+    p.locator('#setup-begin').click()
+    expect(p.locator('html')).to_have_attribute('lang','da')
+    expect(p.locator('dialog[open]')).to_have_count(0)
+    assert p.evaluate('VillageCalendar.elf()')=='male'
+    assert p.evaluate('VillageCalendar.progress()')==1
+    assert p.evaluate('SantaStorage.get(2).then(record=>record.filename)')=='revised.html'
+    p.locator('.v-menu').click();p.locator('[data-do="invitation"]').click()
+    expect(p.locator('#setup-name')).to_have_value('Morgan')
+    p.locator('label:has([name="setup-language"][value="en"])').click()
+    p.locator('#setup-begin').click()
+    expect(p.locator('html')).to_have_attribute('lang','en')
+
     print('Mission panel, creation preview, download and replacement passed',flush=True)
     p.reload();choose(p,2);p.locator('#v-enter').click();visible(p,'#mission-dialog')
     visible(p,'#undo-button');shot(p,'mission-panel');expect(p.locator('#creation-filename')).to_have_text('revised.html')

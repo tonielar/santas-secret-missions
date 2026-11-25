@@ -31,7 +31,7 @@ To exit, open **Village menu → Owner test · Return to real calendar**. If the
 | Between neighbouring stops | | [Wide view on desktop](between-sectors.jpg) · [Mobile paper seam](mobile-seam.jpg) |
 | Puppet selection | | [Both designs in the invitation](invitation-desktop.jpg) · [Male elf in the village](male-paper-elf.jpg) |
 
-The inspiration recording shows adjacent pieces of coloured ground and contrasting vertical backdrops in the same frame. The revised village uses thirteen individually coloured wedges, layered kraft edges, folded silhouettes and a continuous walking ribbon. The animated elf is built from hinged sheets with printed facial details. The dedicated ground shadow was removed. Approaching a sector center narrows the field of view. Halfway to the next center, the lens widens by 13 degrees on mobile and 8 degrees on desktop. Reduced-motion mode keeps the exploration lens steady.
+The inspiration recording shows adjacent pieces of coloured ground and contrasting vertical backdrops in the same frame. The revised village uses thirteen individually coloured wedges, layered kraft edges, folded silhouettes and a continuous walking ribbon. The animated elf is built from hinged sheets with printed facial details. The dedicated ground shadow was removed. Approaching a sector center narrows the field of view. Halfway to the next center, the lens widens by 24 degrees on mobile and 16 degrees on desktop from a house’s center. Reduced-motion mode keeps the exploration lens steady.
 
 ## Run locally
 

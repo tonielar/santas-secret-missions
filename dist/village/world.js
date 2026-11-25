@@ -297,7 +297,10 @@ export function createWorld(canvas, lang, events) {
     }
     // Periodic at the wrap seam in either direction. Keep the origin fixed.
     const between = Math.sin(Math.PI * loc) ** 2;
-    camera.fov = settledFov + (reduce.matches ? 0 : between * (small ? 13 : 8)) * (1 - zoom);
+    // At sector boundaries between is 1, so both sides retain the same wide framing.
+    const houseFocus = stop === 0 ? 0 : (1 - between) * (small ? 11 : 8);
+    const explorationFov = between * (small ? 13 : 8) - houseFocus;
+    camera.fov = settledFov + (reduce.matches ? 0 : explorationFov * (1 - zoom));
     camera.position.copy(cameraAt);
     camera.lookAt(lookAt);
     camera.setViewOffset(

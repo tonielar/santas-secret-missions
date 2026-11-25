@@ -327,3 +327,13 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+#welcome-setup-dialog #setup-cancel {
+  margin: 0 0 6px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--invite-ink);
+  font: inherit;
+  cursor: pointer;
+}
