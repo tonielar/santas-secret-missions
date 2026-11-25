@@ -1,6 +1,8 @@
 # Santa’s Secret Missions • Village preview
 
-The experimental calendar opens in Welcome Square. Select **Explore the village** for the original name, language, letter and Golden Rules sequence. Click Santa to revisit his rules, the post office to read the story, or a number on the route to visit that house. The doors keep the original December 2026 schedule. [Open the independent preview](https://santas-paper-village-preview.tonie81.chatgpt.site)
+New visitors receive a paper invitation to choose English, Danish or Swedish, enter a name and select a female or male paper elf. The original letter and Golden Rules follow. Returning visitors arrive in the village with their saved puppet. Both designs are available in the village menu. [Open the independent preview](https://santas-paper-village-preview.tonie81.chatgpt.site)
+
+![First-visit invitation showing both paper elves](invitation-mobile.jpg)
 
 ![Rendered desktop view of the post office and Welcome Square](welcome-desktop.jpg)
 
@@ -13,6 +15,23 @@ The experimental calendar opens in Welcome Square. Select **Explore the village*
 - Use **Village menu → Classic calendar** for the original layout. It also opens automatically when WebGL is unavailable. Sustained slow frames expose a direct classic-calendar link in the route footer.
 
 The preview uses a separate origin, IndexedDB database names, localStorage keys and a scope-specific cache prefix. It stores names, stars, language and creation files on the visitor’s device. Owner mode uses its own progress and creation records. [Classic preview](https://santas-paper-village-preview.tonie81.chatgpt.site/?view=classic)
+
+## Owner testing before December
+
+Tap five times within three seconds in the **bottom-right 36 × 36 pixels** of the welcome invitation. On short screens, scroll to the bottom of the invitation first. After onboarding, the same gesture works in the bottom-right corner of the **Welcome Square scenery**, immediately above the route controls. The page reloads into owner test mode, which opens all twelve doors. On a fresh device, complete the invitation in test mode.
+
+To exit, open **Village menu → Owner test · Return to real calendar**. If the welcome invitation is open, use its **Owner test · Return to real calendar** control. Normal dates and saved progress return after reload. The owner flag, normal and test progress, and normal and test creation databases stay local to the device.
+
+## Before and after
+
+| View | Previous build | Refined build |
+| --- | --- | --- |
+| Welcome Square | [Desktop](before/welcome-desktop.jpg) · [Mobile](before/welcome-mobile.jpg) | [Desktop](welcome-desktop.jpg) · [Mobile](welcome-mobile.jpg) |
+| Gingerbread Cottage | [Earlier framing](before/stop-01.jpg) | [At the door](stop-01.jpg) |
+| Between neighbouring stops | | [Wide view on desktop](between-sectors.jpg) · [Mobile paper seam](mobile-seam.jpg) |
+| Puppet selection | | [Both designs in the invitation](invitation-desktop.jpg) · [Male elf in the village](male-paper-elf.jpg) |
+
+The inspiration recording shows adjacent pieces of coloured ground and contrasting vertical backdrops in the same frame. The revised village uses thirteen individually coloured wedges, layered kraft edges, folded silhouettes and a continuous walking ribbon. The animated elf is built from hinged sheets with printed facial details. The dedicated ground shadow was removed. Approaching a sector center narrows the field of view. Halfway to the next center, the lens widens by 13 degrees on mobile and 8 degrees on desktop. Reduced-motion mode keeps the exploration lens steady.
 
 ## Run locally
 
@@ -45,6 +64,7 @@ The automated suite runs Chromium on the built `dist/` folder through a temporar
 | Area | Verified behavior |
 | --- | --- |
 | Build and original content | 12 missions, 36 hints, seven rules, icons, manifest, assets and exclusion of development fixtures |
+| First visit and owner testing | Automatic invitation, both puppet choices, persistence, five-tap entry from both corners, all twelve mission panels, separate progress and uploaded files, and return to normal dates |
 | Date boundaries | All 12 local-midnight changes in UTC and Europe/Copenhagen, plus a December 1 browser visit |
 | Circular exploration | All 13 stops, wraparound, reverse navigation, keyboard, wheel, mouse drag and touch swipe |
 | Camera and doors | The camera stays at the center during ordinary navigation, moves for door entry, and returns after closing the panel. Physical clicks on sealed and open doors exercise both states. |
@@ -70,15 +90,17 @@ To select an installed Chromium binary, add `--chromium /path/to/chromium`.
 
 Chromium 156.0.8078.79 ran with SwiftShader software rendering. The navigation benchmark advanced through 26 stops, covering two full circuits. FPS is the number of frame callbacks divided by elapsed time, including transitions and first visits to lazy-built houses.
 
-| Viewport | Elapsed | Average FPS | 95th-percentile frame interval |
-| --- | ---: | ---: | ---: |
-| 1440 × 900 desktop | 14.83 s | 8.0 | 267 ms |
-| 390 × 844 mobile emulation | 14.10 s | 21.3 | 100 ms |
+The previous release and the refinement were measured in the same workspace with the same Chromium binary, viewport sizes, software renderer, navigation sequence and device scale. Both runs began in an open village.
 
-Both software-rendered runs fell below the 30 FPS target. The renderer batches static folds, instances trees, builds nearby houses on demand, reduces the moving drawing buffer on software GPUs, caches shadow maps and offers the classic view on slow devices. Hardware-accelerated desktop performance, physical iPhone Safari and Android performance, and native home-screen installation still need device testing. The offline check covered a browser reload using the installed service worker.
+| Viewport | Before, FPS | After, FPS | Before, 95th-percentile frame interval | After, 95th-percentile frame interval |
+| --- | ---: | ---: | ---: | ---: |
+| Desktop, 1440 × 900 | 8.3 | 14.2 | 250 ms | 167 ms |
+| Mobile emulation, 390 × 844 | 25.3 | 35.0 | 83 ms | 67 ms |
+
+The desktop run improved and still fell short of 30 FPS. The emulated mobile run exceeded 30 FPS on average and still had slower individual frames. The owner supplied an iPhone recording of the previous version. This refinement was tested with software-rendered Chromium. Hardware-accelerated desktop, physical iPhone Safari, Android and native home-screen installation remain unverified for this revision.
 
 ## Source guide
 
-`village/world.js` coordinates the central camera, companion, door transitions, hit testing and quality changes. `landscape.js`, `weather.js` and `street.js` build the connected scenery. The post office, house designs and articulated characters live in `welcome.js`, `houses.js` and `characters.js`. The scene reads date, progress and mission actions through the calendar interface in `app.js`. The original sandbox implementation is in `preview.js`.
+`village/world.js` coordinates the central camera, companion, door transitions, hit testing and quality changes. `landscape.js`, `weather.js` and `street.js` build the connected scenery. The post office, house designs, Santa and the selectable paper elves live in `welcome.js`, `houses.js`, `characters.js` and `puppet.js`. The scene reads date, progress and mission actions through the calendar interface in `app.js`. The original sandbox implementation is in `preview.js`.
 
 The paper geometry and music were made for the village. Three.js ships under its MIT license. The bundled DM Sans and DM Serif Text fonts include their SIL Open Font Licenses under `village/fonts/`.

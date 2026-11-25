@@ -73,6 +73,20 @@ def timing(p):
 def visible(page, selector):
     expect(page.locator(selector)).to_be_visible(timeout=15000)
 
+def onboard(p, variant):
+    visible(p,'#welcome-setup-dialog')
+    p.locator(f'label:has([name="setup-elf"][value="{variant}"])').click()
+    p.locator('#setup-name').fill('Robin')
+    p.locator('#setup-begin').click();visible(p,'#intro-dialog')
+    p.locator('#start-button').click();visible(p,'#rules-dialog')
+    p.locator('#rules-next').click()
+    assert p.evaluate('VillageCalendar.elf()') == variant
+
+def five_taps(p, selector):
+    # Synthetic clicks avoid mistaking animation or test-driver latency for user timing.
+    p.locator(selector).evaluate('(corner) => { for(let i=0;i<5;i++)corner.click() }')
+    expect(p.locator('body')).to_have_attribute('data-mode','test')
+
 def run(browser):
     errors=[]
     p=setup(browser,1440,900)
@@ -80,6 +94,16 @@ def run(browser):
     print('Opening built site',flush=True);p.goto(ORIGIN)
     print('Checking canvas',flush=True);visible(p,'#v-canvas');stop(p,0)
     expect(p.locator('.v-speaker')).to_have_attribute('aria-pressed','false')
+    visible(p,'#welcome-setup-dialog');shot(p,'invitation-desktop')
+    p.locator('label:has([name="setup-language"][value="da"])').click()
+    expect(p.locator('#elf-legend')).to_have_text('Vælg din papirnisse')
+    p.locator('label:has([name="setup-language"][value="en"])').click()
+    onboard(p,'male');choose(p,0);p.reload();stop(p,0)
+    expect(p.locator('#welcome-setup-dialog')).to_be_hidden()
+    assert p.evaluate('VillageCalendar.elf()')=='male'
+    p.locator('.v-menu').click();p.locator('[name="menu-elf"][value="female"]').check()
+    p.locator('#v-menu [data-do="close"]').click()
+    assert p.evaluate('VillageCalendar.elf()')=='female'
     print('Capturing welcome square',flush=True);p.wait_for_timeout(650)
     shot(p,'welcome-desktop')
     print('Desktop frame timing',json.dumps(timing(p)),flush=True)
@@ -100,13 +124,8 @@ def run(browser):
     touch_door();visible(p,'#toast')
     assert 'December 1, 2026' in p.locator('#toast').inner_text()
     p.locator('#v-enter').click();expect(p.locator('#mission-dialog')).to_be_hidden()
-    choose(p,0);p.locator('#v-enter').click();visible(p,'#welcome-setup-dialog')
-    p.locator('#setup-name').fill('Robin');p.locator('#setup-begin').click();visible(p,'#intro-dialog')
-    p.locator('#start-button').click();visible(p,'#rules-dialog');p.locator('#rules-next').click();stop(p,1)
-    print('Circle, locked doors and first-visit setup passed',flush=True)
-    # Existing owner gesture opens and isolates the real unlocked application.
-    for _ in range(7):p.locator('.v-foot>span').first.dispatch_event('click')
-    expect(p.locator('body')).to_have_attribute('data-mode','test');visible(p,'#v-canvas')
+    choose(p,0);five_taps(p,'#square-corner');visible(p,'#v-canvas')
+    assert p.evaluate('Array.from({length:12},(_,i)=>VillageCalendar.status(i+1).ready).every(Boolean)')
     # Observe the actual central camera through the renderer in this test page.
     p.evaluate('''async () => {
       const T=await import('./village/vendor/three.module.min.js');
@@ -114,12 +133,27 @@ def run(browser):
       window.cameraTrace={radius:0,maximum:0};
       T.PerspectiveCamera.prototype.updateMatrixWorld=function(...args) {
         const r=Math.hypot(this.position.x,this.position.z);
-        Object.assign(cameraTrace,{radius:r,maximum:Math.max(r,cameraTrace.maximum)});
+        Object.assign(cameraTrace,{radius:r,fov:this.fov,maximum:Math.max(r,cameraTrace.maximum)});
         return original.apply(this,args);
       };
     }''')
     choose(p,2);p.wait_for_timeout(850)
     assert p.evaluate('cameraTrace.maximum') < .001
+    # Allow lazy construction and the camera easing to finish before sampling.
+    def settle_camera(fov):
+        for _ in range(60):
+            if abs(p.evaluate('cameraTrace.fov')-fov)<.04:return
+            p.wait_for_timeout(100)
+        raise AssertionError(('Camera did not settle',p.evaluate('cameraTrace'),fov))
+    base=p.evaluate("Math.max(30,2*Math.atan(13.5/(29*(document.querySelector('#v-canvas').clientWidth/document.querySelector('#v-canvas').clientHeight)))*180/Math.PI)")
+    settle_camera(base)
+    front=p.evaluate('cameraTrace.fov');p.mouse.move(bounds['x']+bounds['width']*.78,bounds['y']+bounds['height']*.61)
+    p.locator('#v-canvas').dispatch_event('wheel', {'deltaX':225,'deltaMode':0})
+    p.wait_for_timeout(1800)
+    assert p.evaluate('cameraTrace.fov') > front+7.5, (front,p.evaluate('cameraTrace'),p.locator('dialog[open]').count())
+    p.wait_for_timeout(800);shot(p,'between-sectors')
+    assert p.evaluate('cameraTrace.maximum') < .001
+    choose(p,2);settle_camera(base);p.wait_for_timeout(500)
     touch_door();visible(p,'#mission-dialog')
     assert p.evaluate('cameraTrace.maximum') > 12
     assert p.locator('#assignment li').count()>=5
@@ -162,6 +196,9 @@ def run(browser):
     p.locator('[data-close="mission-dialog"]').first.click()
     p.locator('.v-menu').click();p.locator('[data-do="exit-test"]').click()
     expect(p.locator('body')).to_have_attribute('data-mode','production');visible(p,'#v-canvas')
+    assert p.evaluate('VillageCalendar.progress()')==0
+    assert p.evaluate('SantaStorage.get(2).then(record=>!record)')
+    assert p.evaluate('Array.from({length:12},(_,i)=>!VillageCalendar.status(i+1).ready).every(Boolean)')
     for code,expected in [('da','Velkomstpladsen'),('sv','Välkomsttorget'),('en','Welcome Square')]:
         p.locator('.v-lang').click();p.locator('[data-code="'+code+'"]').click()
         expect(p.locator('#v-place-name')).to_have_text(expected,timeout=15000)
@@ -179,7 +216,8 @@ def run(browser):
     print('Persistence, languages, original date mode and offline reload passed',flush=True)
 
     p=setup(browser,390,844,is_mobile=True,has_touch=True)
-    p.goto(ORIGIN);stop(p,0);p.wait_for_timeout(650);shot(p,'welcome-mobile')
+    p.goto(ORIGIN);visible(p,'#welcome-setup-dialog');shot(p,'invitation-mobile')
+    five_taps(p,'#invitation-corner');onboard(p,'female');choose(p,0);p.wait_for_timeout(650);shot(p,'welcome-mobile')
     print('Mobile viewport frame timing',json.dumps(timing(p)),flush=True)
     assert p.evaluate('document.documentElement.scrollWidth <= innerWidth')
     cdp=p.context.new_cdp_session(p)
@@ -189,9 +227,9 @@ def run(browser):
     expect(p.locator('#paper-village')).not_to_have_attribute('data-stop','0',timeout=15000)
     expect(p.locator('dialog[open]')).to_have_count(0);p.close()
     p=setup(browser,date='2026-12-01',reduced_motion='reduce')
-    p.goto(ORIGIN);choose(p,1);expect(p.locator('#v-enter')).to_have_text('Open the door')
+    p.goto(ORIGIN);onboard(p,'male');choose(p,1);expect(p.locator('#v-enter')).to_have_text('Open the door')
     choose(p,2);expect(p.locator('#v-enter')).to_have_text('Try the door')
-    p.locator('.v-menu').click();p.locator('[data-do="classic"]').click();visible(p,'#welcome-setup-dialog')
+    p.locator('.v-menu').click();p.locator('[data-do="classic"]').click();visible(p,'#calendar')
     assert p.locator('#calendar button').count()==12;p.close()
     p=setup(browser)
     p.add_init_script("""const get=HTMLCanvasElement.prototype.getContext;
@@ -199,9 +237,40 @@ def run(browser):
     p.goto(ORIGIN);visible(p,'#welcome-setup-dialog');visible(p,'#calendar')
     p.close()
 
+def verify_owner_workbench(browser):
+    page=setup(browser,reduced_motion='reduce')
+    page.goto(ORIGIN)
+    visible(page,'#welcome-setup-dialog')
+    five_taps(page,'#invitation-corner')
+    onboard(page,'male')
+    for n in range(1,13):
+        choose(page,n)
+        page.locator('#v-enter').click()
+        visible(page,'#mission-dialog')
+        expect(page.locator('#mission-title')).not_to_be_empty()
+        if n==12:
+            page.locator('#complete-button').click()
+            with page.expect_file_chooser() as chooser:
+                page.locator('#upload-creation').click()
+            chooser.value.set_files({'name':'owner.html','mimeType':'text/html','buffer':b'<html><body>Owner test</body></html>'})
+            expect(page.locator('#creation-filename')).to_have_text('owner.html')
+        page.locator('[data-close="mission-dialog"]').first.click()
+        page.wait_for_timeout(150)
+    choose(page,0);shot(page,'male-paper-elf')
+    page.locator('.v-menu').click();page.locator('[data-do="exit-test"]').click()
+    visible(page,'#welcome-setup-dialog')
+    assert page.evaluate('VillageCalendar.progress()')==0
+    assert page.evaluate('SantaStorage.get(12).then(record=>!record)')
+    five_taps(page,'#invitation-corner')
+    visible(page,'#v-canvas');expect(page.locator('#welcome-setup-dialog')).to_be_hidden()
+    assert page.evaluate('VillageCalendar.progress()')==1
+    assert page.evaluate('SantaStorage.get(12).then(record=>record.filename)')=='owner.html'
+    page.close()
+
 def benchmark(browser):
     for width,height in [(1440,900),(390,844)]:
         page=setup(browser,width,height,is_mobile=width<700,has_touch=width<700)
+        page.add_init_script("if(self===top)localStorage.setItem('paper-village-missions-2026-olivia',JSON.stringify({name:'Robin',onboarded:true,setupComplete:true}))")
         page.goto(ORIGIN);stop(page,0);page.wait_for_timeout(900)
         result=page.evaluate("""() => new Promise(resolve => {
           const delta=[];const next=document.querySelector('[data-do="next"]');
@@ -230,6 +299,8 @@ with http_fixture() as ORIGIN, sync_playwright() as playwright:
     print('Chromium',browser.version,flush=True)
     try:
         if args.motion_benchmark:benchmark(browser)
-        else:run(browser)
+        else:
+            run(browser)
+            verify_owner_workbench(browser)
     finally:browser.close()
     if not args.motion_benchmark:print('PASS: circle, inputs, locks, onboarding, owner mode, languages, audio, mission lifecycle, local files, sandbox, reduced motion and fallback')
