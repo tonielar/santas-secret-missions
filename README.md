@@ -4,6 +4,10 @@ A shareable Christmas invention adventure for curious children aged roughly 12â€
 
 The original North Pole village, Santa artwork and readable mission panels have been preserved. The app includes a first-visit name/language setup (English, Danish and Swedish), a local inventor's workbench, isolated interactive previews, installation help, offline caching, and a snowy North Pole village.
 
+## Experimental village preview
+
+Explore the circular paper village on this branch. The review includes setup instructions, screenshots of every stop, browser test results and measured performance. [Open the preview](https://santas-paper-village-preview.tonie81.chatgpt.site) Â· [Village review](docs/village-review/README.md)
+
 ## Start here
 
 - **Publish:** follow [DEPLOYMENT.md](DEPLOYMENT.md). Intended repository: `tonielar/santas-secret-missions`, under the personal account, not ScanTherm.

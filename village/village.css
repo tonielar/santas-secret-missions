@@ -1,110 +1,885 @@
-@font-face{font-family:Village Sans;src:url(fonts/sans.woff) format("woff");font-weight:400 700;font-display:swap}
-@font-face{font-family:Village Serif;src:url(fonts/serif.woff) format("woff");font-weight:400;font-display:swap}
-@font-face{font-family:Village Serif;src:url(fonts/serif-italic.woff) format("woff");font-weight:400;font-style:italic;font-display:swap}
-body.village-pending,body.village-on{margin:0;background:#f7f2e5;color:#283d37}
-body.village-pending #classic-view,body.village-on #classic-view{display:none}
-#paper-village,.v-pop{--cream:#faf5e6;--ink:#263e37;--red:#a43736;--line:#d9d3c2;font-family:"Village Sans",sans-serif;color:var(--ink)}
-#paper-village{background:#f7f2e5;position:relative;isolation:isolate;min-height:100svh;display:flex;flex-direction:column}
-#paper-village *, .v-pop *{box-sizing:border-box}
-#paper-village button,.v-pop button,.dialog-sound{appearance:none;font:inherit;color:inherit;cursor:pointer;border:none;border-radius:0;background:none;box-shadow:none;margin:0;text-transform:none;letter-spacing:normal;min-height:0}
-#paper-village button:focus-visible,.v-pop button:focus-visible,.dialog-sound:focus-visible{outline:3px solid #de9b45;outline-offset:3px}
-.v-icon{width:20px;height:20px;display:inline-block;flex:none;vertical-align:middle}
-#paper-village .v-header{height:77px;flex:none;padding:0 clamp(22px,4.2vw,80px);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:5;border-bottom:1px solid #cfc7b0;background:#fbf6e9 url(fibres.png)}
-#paper-village .v-brand{display:inline-flex;align-items:center;gap:12px;text-align:left;font:400 24px/.94 "Village Serif",Georgia,serif;padding:0}
-.v-brand small{font:600 9px/1.4 "Village Sans",sans-serif;letter-spacing:2.1px;text-transform:uppercase;display:block;margin-top:6px}
-.v-stamp{width:36px;height:42px;color:#ffecd7;display:grid;place-items:center;background:#a84037;transform:rotate(-6deg);outline:1px solid #96372e;outline-offset:-5px;mask:radial-gradient(circle at 0 4px,transparent 2px,#000 2.4px) 0 0/51% 8px repeat-y,radial-gradient(circle at 100% 4px,transparent 2px,#000 2.4px) 100% 0/51% 8px repeat-y}
-.v-stamp .v-icon{width:26px;height:26px}
-#paper-village .v-links{display:flex;gap:30px;align-items:center;position:absolute;left:50%;transform:translateX(-50%);height:100%}
-#paper-village .v-links button{font-size:13px;font-weight:600;height:100%;display:inline-flex;align-items:center;gap:7px;padding:0 1px;position:relative}
-#paper-village .v-links button:hover,.v-pop button:hover{color:var(--red)}
-#paper-village .v-links .v-active{color:#9d3933}
-.v-active::after{content:"";position:absolute;height:2px;bottom:16px;left:0;right:0;background:#ab433b}
-.v-links .v-icon{width:17px;height:17px}
-.v-tools{display:flex;align-items:center;gap:9px}
-#paper-village .v-tools button,.v-pop-top button,.dialog-sound{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:42px;padding:5px}
-.v-rule{height:18px;width:1px;background:var(--line)}
-#paper-village .v-lang{font-size:12px;font-weight:600;gap:6px}
-.v-lang .v-icon:first-child{width:16px;height:16px}
-.v-lang .v-icon:last-child{width:11px;height:11px}
-#paper-village #v-stage{position:relative;min-height:480px;height:calc(100svh - 219px);max-height:1040px;width:100%;overflow:hidden;background:#29475a;margin:0;padding:0;isolation:isolate;flex:1 0 auto;color:#fff5df;touch-action:pan-y}
-#v-canvas,.v-wash,.v-grain{position:absolute;inset:0;width:100%;height:100%;display:block}
-#v-canvas{touch-action:pan-y;cursor:grab}
-#v-canvas:active{cursor:grabbing}
-.v-wash{z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(14,33,44,.8),rgba(16,39,49,.65) 23%,rgba(22,44,49,.19) 39%,transparent 54%),linear-gradient(0deg,rgba(26,46,44,.17),transparent 20%)}
-.v-grain{background:url(fibres.png);z-index:2;pointer-events:none;opacity:.46}
-#paper-village .v-copy{position:absolute;left:clamp(25px,5.3vw,105px);top:48.5%;transform:translateY(-50%);width:39%;max-width:620px;z-index:3;text-align:left;pointer-events:none;margin:0;padding:0;background:none;border:0;box-shadow:none}
-.v-kicker{display:flex;align-items:center;gap:11px;font-size:10px;line-height:1.5;text-transform:uppercase;letter-spacing:2.4px;color:#fadd9c}
-.v-kicker b{font-weight:600}
-.v-kicker span{width:28px;height:1px;background:#e5c185;position:relative;flex:none}
-.v-kicker span::after{content:"✦";position:absolute;font-size:12px;right:-3px;top:50%;transform:translateY(-50%);line-height:1}
-#paper-village #v-title{font:400 clamp(56px,5.7vw,108px)/.99 "Village Serif",Georgia,serif;color:#fffaed;letter-spacing:-.055em;text-transform:none;text-shadow:0 2px 2px #061b2426;margin:21px 0 18px}
-#paper-village #v-title em{font:inherit;font-style:italic;color:#f4d793}
-#paper-village #v-desc{font:400 clamp(14px,1.1vw,19px)/1.65 "Village Sans",sans-serif;color:#faf5e8;max-width:330px;margin:0 0 27px;text-wrap:pretty}
-#paper-village #v-enter{background:#faebc9;border:1px solid #ffefd4;border-radius:4px;box-shadow:0 3px 0 #c5a375,0 6px 14px #10252b36;color:#293d34;padding:13px 20px;display:inline-flex;align-items:center;gap:22px;font-weight:650;font-size:14px;pointer-events:auto;transition:transform .16s}
-#paper-village #v-enter:hover{transform:translateY(-2px);background:#fff3d8}
-#v-enter .v-icon{width:16px;height:16px}
-#paper-village .v-marker{position:absolute;z-index:3;display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;letter-spacing:.35px;background:#fff5dc;color:#4a3d2c;border:1px solid #d8bf90;border-radius:12px;padding:4px 9px;box-shadow:0 2px 3px #0d20263b;transform:translate(-50%,-100%)}
-#paper-village .v-marker::after{content:"";position:absolute;top:100%;left:45%;border:4px solid transparent;border-top:5px solid #fff5dc}
-.v-marker .v-icon{width:11px;height:11px}
-.v-drag{position:absolute;bottom:20px;right:4.2%;z-index:2;color:#2c423c;display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.6px;background:#f9f2dfdf;padding:5px 10px;border-radius:16px;pointer-events:none}
-.v-drag .v-icon{height:13px;width:13px}
-#paper-village .v-route{margin:0;padding:24px 4.2vw 20px;display:flex;align-items:center;gap:clamp(20px,4vw,72px);position:relative;z-index:4;background:#fbf7eb url(fibres.png);min-height:98px}
-.v-route::before{content:"";position:absolute;height:7px;top:-5px;left:0;right:0;background:inherit;clip-path:polygon(0 22%,4% 30%,9% 11%,15% 42%,20% 14%,27% 38%,32% 7%,39% 38%,47% 19%,53% 44%,60% 9%,67% 38%,74% 20%,81% 39%,88% 12%,94% 32%,100% 12%,100% 100%,0 100%)}
-.v-place{display:flex;align-items:center;gap:12px;min-width:245px}
-.v-map{border:1px solid #c8c7ac;color:#5f7660;background:#e9ebd9;display:grid;place-items:center;width:46px;height:46px;border-radius:50%}
-.v-map .v-icon{width:23px;height:23px}
-.v-place small{display:flex;gap:9px;align-items:center;text-transform:uppercase;font-size:9px;color:#5f685e;letter-spacing:1.45px;font-weight:650}
-#v-index{color:#8d7761;font-feature-settings:"tnum";font-size:9px;letter-spacing:.7px}
-.v-place strong{display:block;font:400 clamp(19px,1.7vw,28px)/1.2 "Village Serif",serif;color:var(--ink);margin-top:4px}
-.v-steps{position:relative;display:flex;align-items:center;justify-content:space-between;flex:1;gap:2px}
-.v-steps::before{content:"";position:absolute;top:50%;height:1px;left:2%;right:2%;background:repeating-linear-gradient(90deg,#beb9a7 0 3px,transparent 3px 6px)}
-#paper-village .v-steps button{width:clamp(23px,2.3vw,34px);height:clamp(23px,2.3vw,34px);padding:0;display:grid;place-items:center;position:relative;z-index:1;font:600 10px/1 "Village Sans",sans-serif;border-radius:50%;background:#faf7ec;border:1px solid #d8d1bd;color:#686d60}
-#paper-village .v-steps button[aria-current=step]{background:#953e35;color:#fff1d7;border-color:#953e35;box-shadow:0 0 0 3px #faf7ec,0 0 0 4px #bd8d72}
-#paper-village .v-steps button.v-done::after{content:"★";position:absolute;bottom:-6px;font-size:10px;color:#ae7718}
-.v-steps .v-icon{width:15px;height:15px}
-.v-arrows{display:flex;gap:8px}
-#paper-village .v-arrows button,#paper-village .v-speaker{display:grid;place-items:center;border-radius:50%;border:1px solid #cecab9;width:42px;height:42px;padding:0}
-#paper-village .v-speaker{width:36px;height:36px;min-width:36px;min-height:36px}
-#paper-village .v-arrows button:last-child{background:#284b41;color:#fff7e4;border-color:#284b41}
-#paper-village .v-arrows button:hover{outline:2px solid #c5bca5;outline-offset:2px}
-#paper-village .v-foot{margin:0 4.2vw;border-top:1px solid #d4cfbb;min-height:44px;display:flex;justify-content:space-between;align-items:center;color:#677268;font:500 10px "Village Sans",sans-serif;letter-spacing:.3px}
-.v-foot>span{display:flex;align-items:center;gap:6px}.v-foot i{background:#6a876b;border-radius:50%;width:6px;height:6px}.v-foot b{font-weight:400}.v-foot .v-icon{color:#987137;width:13px;height:13px}
-#paper-village .v-skip{position:absolute;top:-100px;left:5%;z-index:10;background:white;color:black;padding:8px}
-#paper-village .v-skip:focus{top:3px}
-.v-pop{width:min(400px,calc(100% - 30px));max-height:85svh;border:1px solid #d3c7ab;border-radius:9px;background:#fbf6e9 url(fibres.png);padding:22px 25px;box-shadow:0 14px 60px #17392b42}
-.v-pop::backdrop{background:#17283183}
-.v-pop h2{font:400 30px "Village Serif",serif;margin:0;color:var(--ink)}
-.v-pop-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.v-pop .v-languages{display:flex;gap:7px;margin:16px 0}
-.v-pop .v-languages button{padding:8px 11px;border:1px solid #bcb49c;border-radius:3px;font-size:13px}
-.v-pop .v-languages button[aria-pressed=true]{background:#2c4b40;color:white;border-color:#2c4b40}
-.v-menu-items{display:grid}
-.v-pop .v-menu-items button{border-top:1px solid #d6cfba;padding:12px 0;display:flex;justify-content:space-between;align-items:center;font-size:15px}
-.v-menu-items .v-icon{width:14px;height:14px}
-.v-pop p{font:400 16px/1.6 "Village Sans",sans-serif}
-.village-on dialog:not(.v-pop) .dialog-sound,.v-pop .dialog-sound{position:sticky;z-index:5;bottom:8px;float:right;clear:both;margin:6px 10px 8px 0;width:36px;height:36px;min-height:36px;min-width:36px;border-radius:50%;background:#fcf5df;color:#2d433a;border:1px solid #cbbd9f;box-shadow:0 2px 6px #17342830}
-body.village-on #toast:not([hidden]){position:fixed;bottom:max(24px,12svh);z-index:15}
-body.village-on .v-marker[hidden],#paper-village [hidden]{display:none}
-@media(min-width:1700px){#paper-village #v-stage{max-height:none}}
-@media(max-width:1000px){#paper-village .v-links{gap:20px}.v-place{min-width:180px}.v-map{display:none}#paper-village .v-route{gap:20px}.v-steps{gap:1px}#paper-village #v-title{font-size:clamp(48px,6.4vw,70px)}}
-@media(max-width:700px){
- #paper-village .v-header{height:59px;padding:0 17px}.v-stamp{width:28px;height:34px}.v-brand small{font-size:7px;margin-top:3px}#paper-village .v-brand{font-size:19px;gap:8px}#paper-village .v-links{display:none}.v-tools{gap:3px}.v-rule{margin:0 3px}
- #paper-village #v-stage{height:calc(100svh - 212px);min-height:500px;max-height:900px}
- #paper-village .v-copy{top:5%;left:6%;transform:none;width:82%;max-width:440px}
- #paper-village #v-title{font-size:clamp(40px,9vw,58px);line-height:.98;margin:9px 0 7px;letter-spacing:-.043em}
- #paper-village #v-title br{display:block}#paper-village #v-title em{margin-left:0}
- #paper-village #v-desc{max-width:290px;font-size:13px;line-height:1.45;margin-bottom:11px}.v-kicker{font-size:8px;letter-spacing:1.9px}
- #paper-village #v-enter{font-size:12px;padding:8px 12px;gap:12px}.v-wash{background:linear-gradient(180deg,#102838c9,rgba(20,41,51,.45) 24%,transparent 46%)}
- #paper-village .v-route{padding:12px 5% 13px;gap:11px;flex-wrap:wrap;min-height:108px}.v-place{flex:1}.v-map{display:grid;width:35px;height:35px}.v-map .v-icon{width:18px;height:18px}.v-place strong{font-size:19px}.v-place small{font-size:8px}
- .v-steps{order:3;flex:0 0 100%;height:23px}#paper-village .v-steps button{width:22px;height:22px;font-size:8px}.v-steps .v-icon{height:12px;width:12px}
- #paper-village .v-arrows button{width:34px;height:34px}.v-arrows .v-icon{width:16px;height:16px}
- #paper-village .v-foot{min-height:34px;font-size:9px}.v-drag{right:5%;bottom:12px;font-size:9px}#paper-village .v-marker{font-size:9px}
+@font-face {
+  font-family: Village Sans;
+  src: url(fonts/sans.woff) format('woff');
+  font-weight: 400 700;
+  font-display: swap;
 }
-@media(prefers-reduced-motion:reduce){#paper-village *{transition:none!important;animation:none!important}}
+@font-face {
+  font-family: Village Serif;
+  src: url(fonts/serif.woff) format('woff');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Village Serif;
+  src: url(fonts/serif-italic.woff) format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+body.village-pending,
+body.village-on {
+  margin: 0;
+  background: #f7f2e5;
+  color: #283d37;
+}
+body.village-pending #classic-view,
+body.village-on #classic-view {
+  display: none;
+}
+#paper-village,
+.v-pop {
+  --cream: #faf5e6;
+  --ink: #263e37;
+  --red: #a43736;
+  --line: #d9d3c2;
+  font-family: 'Village Sans', sans-serif;
+  color: var(--ink);
+}
+#paper-village {
+  background: #f7f2e5;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+#paper-village *,
+.v-pop * {
+  box-sizing: border-box;
+}
+#paper-village button,
+.v-pop button,
+.dialog-sound {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  min-height: 0;
+}
+#paper-village button:focus-visible,
+.v-pop button:focus-visible,
+.dialog-sound:focus-visible {
+  outline: 3px solid #de9b45;
+  outline-offset: 3px;
+}
+.v-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+#paper-village .v-header {
+  height: 77px;
+  flex: none;
+  padding: 0 clamp(22px, 4.2vw, 80px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 5;
+  border-bottom: 1px solid #cfc7b0;
+  background: #fbf6e9 url(fibres.png);
+}
+#paper-village .v-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font:
+    400 24px/0.94 'Village Serif',
+    Georgia,
+    serif;
+  padding: 0;
+}
+.v-brand small {
+  font:
+    600 9px/1.4 'Village Sans',
+    sans-serif;
+  letter-spacing: 2.1px;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 6px;
+}
+.v-stamp {
+  width: 36px;
+  height: 42px;
+  color: #ffecd7;
+  display: grid;
+  place-items: center;
+  background: #a84037;
+  transform: rotate(-6deg);
+  outline: 1px solid #96372e;
+  outline-offset: -5px;
+  mask:
+    radial-gradient(circle at 0 4px, transparent 2px, #000 2.4px) 0 0/51% 8px repeat-y,
+    radial-gradient(circle at 100% 4px, transparent 2px, #000 2.4px) 100% 0/51% 8px repeat-y;
+}
+.v-stamp .v-icon {
+  width: 26px;
+  height: 26px;
+}
+#paper-village .v-links {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+}
+#paper-village .v-links button {
+  font-size: 13px;
+  font-weight: 600;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 1px;
+  position: relative;
+}
+#paper-village .v-links button:hover,
+.v-pop button:hover {
+  color: var(--red);
+}
+#paper-village .v-links .v-active {
+  color: #9d3933;
+}
+.v-active::after {
+  content: '';
+  position: absolute;
+  height: 2px;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  background: #ab433b;
+}
+.v-links .v-icon {
+  width: 17px;
+  height: 17px;
+}
+.v-tools {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+#paper-village .v-tools button,
+.v-pop-top button,
+.dialog-sound {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 42px;
+  padding: 5px;
+}
+.v-rule {
+  height: 18px;
+  width: 1px;
+  background: var(--line);
+}
+#paper-village .v-lang {
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+}
+.v-lang .v-icon:first-child {
+  width: 16px;
+  height: 16px;
+}
+.v-lang .v-icon:last-child {
+  width: 11px;
+  height: 11px;
+}
+#paper-village #v-stage {
+  position: relative;
+  min-height: 480px;
+  height: calc(100svh - 219px);
+  max-height: 1040px;
+  width: 100%;
+  overflow: hidden;
+  background: #29475a;
+  margin: 0;
+  padding: 0;
+  isolation: isolate;
+  flex: 1 0 auto;
+  color: #fff5df;
+  touch-action: pan-y;
+}
+#v-canvas,
+.v-wash,
+.v-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#v-canvas {
+  touch-action: pan-y;
+  cursor: grab;
+}
+#v-canvas:active {
+  cursor: grabbing;
+}
+.v-wash {
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+      90deg,
+      rgba(14, 33, 44, 0.8),
+      rgba(16, 39, 49, 0.65) 23%,
+      rgba(22, 44, 49, 0.19) 39%,
+      transparent 54%
+    ),
+    linear-gradient(0deg, rgba(26, 46, 44, 0.17), transparent 20%);
+}
+.v-grain {
+  background: url(fibres.png);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.46;
+}
+#paper-village .v-copy {
+  position: absolute;
+  left: clamp(25px, 5.3vw, 105px);
+  top: 48.5%;
+  transform: translateY(-50%);
+  width: 39%;
+  max-width: 620px;
+  z-index: 3;
+  text-align: left;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.v-kicker {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 10px;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 2.4px;
+  color: #fadd9c;
+}
+.v-kicker b {
+  font-weight: 600;
+}
+.v-kicker span {
+  width: 28px;
+  height: 1px;
+  background: #e5c185;
+  position: relative;
+  flex: none;
+}
+.v-kicker span::after {
+  content: '✦';
+  position: absolute;
+  font-size: 12px;
+  right: -3px;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+}
+#paper-village #v-title {
+  font:
+    400 clamp(56px, 5.7vw, 108px) / 0.99 'Village Serif',
+    Georgia,
+    serif;
+  color: #fffaed;
+  letter-spacing: -0.055em;
+  text-transform: none;
+  text-shadow: 0 2px 2px #061b2426;
+  margin: 21px 0 18px;
+}
+#paper-village #v-title em {
+  font: inherit;
+  font-style: italic;
+  color: #f4d793;
+}
+#paper-village #v-desc {
+  font:
+    400 clamp(14px, 1.1vw, 19px) / 1.65 'Village Sans',
+    sans-serif;
+  color: #faf5e8;
+  max-width: 330px;
+  margin: 0 0 27px;
+  text-wrap: pretty;
+}
+#paper-village #v-enter {
+  background: #faebc9;
+  border: 1px solid #ffefd4;
+  border-radius: 4px;
+  box-shadow:
+    0 3px 0 #c5a375,
+    0 6px 14px #10252b36;
+  color: #293d34;
+  padding: 13px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  font-weight: 650;
+  font-size: 14px;
+  pointer-events: auto;
+  transition: transform 0.16s;
+}
+#paper-village #v-enter:hover {
+  transform: translateY(-2px);
+  background: #fff3d8;
+}
+#v-enter .v-icon {
+  width: 16px;
+  height: 16px;
+}
+#paper-village .v-marker {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.35px;
+  background: #fff5dc;
+  color: #4a3d2c;
+  border: 1px solid #d8bf90;
+  border-radius: 12px;
+  padding: 4px 9px;
+  box-shadow: 0 2px 3px #0d20263b;
+  transform: translate(-50%, -100%);
+}
+#paper-village .v-marker::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 45%;
+  border: 4px solid transparent;
+  border-top: 5px solid #fff5dc;
+}
+.v-marker .v-icon {
+  width: 11px;
+  height: 11px;
+}
+.v-drag {
+  position: absolute;
+  bottom: 20px;
+  right: 4.2%;
+  z-index: 2;
+  color: #2c423c;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  background: #f9f2dfdf;
+  padding: 5px 10px;
+  border-radius: 16px;
+  pointer-events: none;
+}
+.v-drag .v-icon {
+  height: 13px;
+  width: 13px;
+}
+#paper-village .v-route {
+  margin: 0;
+  padding: 24px 4.2vw 20px;
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 4vw, 72px);
+  position: relative;
+  z-index: 4;
+  background: #fbf7eb url(fibres.png);
+  min-height: 98px;
+}
+.v-route::before {
+  content: '';
+  position: absolute;
+  height: 7px;
+  top: -5px;
+  left: 0;
+  right: 0;
+  background: inherit;
+  clip-path: polygon(
+    0 22%,
+    4% 30%,
+    9% 11%,
+    15% 42%,
+    20% 14%,
+    27% 38%,
+    32% 7%,
+    39% 38%,
+    47% 19%,
+    53% 44%,
+    60% 9%,
+    67% 38%,
+    74% 20%,
+    81% 39%,
+    88% 12%,
+    94% 32%,
+    100% 12%,
+    100% 100%,
+    0 100%
+  );
+}
+.v-place {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 245px;
+}
+.v-map {
+  border: 1px solid #c8c7ac;
+  color: #5f7660;
+  background: #e9ebd9;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+}
+.v-map .v-icon {
+  width: 23px;
+  height: 23px;
+}
+.v-place small {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  text-transform: uppercase;
+  font-size: 9px;
+  color: #5f685e;
+  letter-spacing: 1.45px;
+  font-weight: 650;
+}
+#v-index {
+  color: #8d7761;
+  font-feature-settings: 'tnum';
+  font-size: 9px;
+  letter-spacing: 0.7px;
+}
+.v-place strong {
+  display: block;
+  font:
+    400 clamp(19px, 1.7vw, 28px) / 1.2 'Village Serif',
+    serif;
+  color: var(--ink);
+  margin-top: 4px;
+}
+.v-steps {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 2px;
+}
+.v-steps::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  left: 2%;
+  right: 2%;
+  background: repeating-linear-gradient(90deg, #beb9a7 0 3px, transparent 3px 6px);
+}
+#paper-village .v-steps button {
+  width: clamp(23px, 2.3vw, 34px);
+  height: clamp(23px, 2.3vw, 34px);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  position: relative;
+  z-index: 1;
+  font:
+    600 10px/1 'Village Sans',
+    sans-serif;
+  border-radius: 50%;
+  background: #faf7ec;
+  border: 1px solid #d8d1bd;
+  color: #686d60;
+}
+#paper-village .v-steps button[aria-current='step'] {
+  background: #953e35;
+  color: #fff1d7;
+  border-color: #953e35;
+  box-shadow:
+    0 0 0 3px #faf7ec,
+    0 0 0 4px #bd8d72;
+}
+#paper-village .v-steps button.v-done::after {
+  content: '★';
+  position: absolute;
+  bottom: -6px;
+  font-size: 10px;
+  color: #ae7718;
+}
+.v-steps .v-icon {
+  width: 15px;
+  height: 15px;
+}
+.v-arrows {
+  display: flex;
+  gap: 8px;
+}
+#paper-village .v-arrows button,
+#paper-village .v-speaker {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid #cecab9;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+}
+#paper-village .v-speaker {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+}
+#paper-village .v-arrows button:last-child {
+  background: #284b41;
+  color: #fff7e4;
+  border-color: #284b41;
+}
+#paper-village .v-arrows button:hover {
+  outline: 2px solid #c5bca5;
+  outline-offset: 2px;
+}
+#paper-village .v-foot {
+  margin: 0 4.2vw;
+  border-top: 1px solid #d4cfbb;
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #677268;
+  font:
+    500 10px 'Village Sans',
+    sans-serif;
+  letter-spacing: 0.3px;
+}
+.v-foot > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.v-foot i {
+  background: #6a876b;
+  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+}
+.v-foot b {
+  font-weight: 400;
+}
+.v-foot .v-icon {
+  color: #987137;
+  width: 13px;
+  height: 13px;
+}
+#paper-village .v-skip {
+  position: absolute;
+  top: -100px;
+  left: 5%;
+  z-index: 10;
+  background: white;
+  color: black;
+  padding: 8px;
+}
+#paper-village .v-skip:focus {
+  top: 3px;
+}
+.v-pop {
+  width: min(400px, calc(100% - 30px));
+  max-height: 85svh;
+  border: 1px solid #d3c7ab;
+  border-radius: 9px;
+  background: #fbf6e9 url(fibres.png);
+  padding: 22px 25px;
+  box-shadow: 0 14px 60px #17392b42;
+}
+.v-pop::backdrop {
+  background: #17283183;
+}
+.v-pop h2 {
+  font:
+    400 30px 'Village Serif',
+    serif;
+  margin: 0;
+  color: var(--ink);
+}
+.v-pop-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.v-pop .v-languages {
+  display: flex;
+  gap: 7px;
+  margin: 16px 0;
+}
+.v-pop .v-languages button {
+  padding: 8px 11px;
+  border: 1px solid #bcb49c;
+  border-radius: 3px;
+  font-size: 13px;
+}
+.v-pop .v-languages button[aria-pressed='true'] {
+  background: #2c4b40;
+  color: white;
+  border-color: #2c4b40;
+}
+.v-menu-items {
+  display: grid;
+}
+.v-pop .v-menu-items button {
+  border-top: 1px solid #d6cfba;
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+.v-menu-items .v-icon {
+  width: 14px;
+  height: 14px;
+}
+.v-pop p {
+  font:
+    400 16px/1.6 'Village Sans',
+    sans-serif;
+}
+.village-on dialog:not(.v-pop) .dialog-sound,
+.v-pop .dialog-sound {
+  position: fixed;
+  z-index: 5;
+  top: auto;
+  right: auto;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  margin: 0;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: #fcf5df;
+  color: #2d433a;
+  border: 1px solid #cbbd9f;
+  box-shadow: 0 2px 6px #17342830;
+}
+body.village-on #toast:not([hidden]) {
+  position: fixed;
+  bottom: max(24px, 12svh);
+  z-index: 15;
+}
+body.village-on .v-marker[hidden],
+#paper-village [hidden] {
+  display: none;
+}
+@media (min-width: 1700px) {
+  #paper-village #v-stage {
+    max-height: none;
+  }
+}
+@media (max-width: 1000px) {
+  #paper-village .v-links {
+    gap: 20px;
+  }
+  .v-place {
+    min-width: 180px;
+  }
+  .v-map {
+    display: none;
+  }
+  #paper-village .v-route {
+    gap: 20px;
+  }
+  .v-steps {
+    gap: 1px;
+  }
+  #paper-village #v-title {
+    font-size: clamp(48px, 6.4vw, 70px);
+  }
+}
+@media (max-width: 700px) {
+  #paper-village .v-header {
+    height: 59px;
+    padding: 0 17px;
+  }
+  .v-stamp {
+    width: 28px;
+    height: 34px;
+  }
+  .v-brand small {
+    font-size: 7px;
+    margin-top: 3px;
+  }
+  #paper-village .v-brand {
+    font-size: 19px;
+    gap: 8px;
+  }
+  #paper-village .v-links {
+    display: none;
+  }
+  .v-tools {
+    gap: 3px;
+  }
+  .v-rule {
+    margin: 0 3px;
+  }
+  #paper-village #v-stage {
+    height: calc(100svh - 212px);
+    min-height: 500px;
+    max-height: 900px;
+  }
+  #paper-village .v-copy {
+    top: 5%;
+    left: 6%;
+    transform: none;
+    width: 82%;
+    max-width: 440px;
+  }
+  #paper-village #v-title {
+    font-size: clamp(40px, 9vw, 58px);
+    line-height: 0.98;
+    margin: 9px 0 7px;
+    letter-spacing: -0.043em;
+  }
+  #paper-village #v-title br {
+    display: block;
+  }
+  #paper-village #v-title em {
+    margin-left: 0;
+  }
+  #paper-village #v-desc {
+    max-width: 290px;
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 11px;
+  }
+  .v-kicker {
+    font-size: 8px;
+    letter-spacing: 1.9px;
+  }
+  #paper-village #v-enter {
+    font-size: 12px;
+    padding: 8px 12px;
+    gap: 12px;
+  }
+  .v-wash {
+    background: linear-gradient(180deg, #102838c9, rgba(20, 41, 51, 0.45) 24%, transparent 46%);
+  }
+  #paper-village .v-route {
+    padding: 12px 5% 13px;
+    gap: 11px;
+    flex-wrap: wrap;
+    min-height: 108px;
+  }
+  .v-place {
+    flex: 1;
+  }
+  .v-map {
+    display: grid;
+    width: 35px;
+    height: 35px;
+  }
+  .v-map .v-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .v-place strong {
+    font-size: 19px;
+  }
+  .v-place small {
+    font-size: 8px;
+  }
+  .v-steps {
+    order: 3;
+    flex: 0 0 100%;
+    height: 23px;
+  }
+  #paper-village .v-steps button {
+    width: 22px;
+    height: 22px;
+    font-size: 8px;
+  }
+  .v-steps .v-icon {
+    height: 12px;
+    width: 12px;
+  }
+  #paper-village .v-arrows button {
+    width: 34px;
+    height: 34px;
+  }
+  .v-arrows .v-icon {
+    width: 16px;
+    height: 16px;
+  }
+  #paper-village .v-foot {
+    min-height: 34px;
+    font-size: 9px;
+  }
+  .v-drag {
+    right: 5%;
+    bottom: 12px;
+    font-size: 9px;
+  }
+  #paper-village .v-marker {
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #paper-village * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 
-.village-on dialog:not(.v-pop) .dialog-sound,.v-pop .dialog-sound{top:8px;bottom:auto;margin-right:54px}
-.v-pop .dialog-sound{margin-right:35px}
-#paper-village #v-lite{font-size:12px;text-decoration:underline}
+#paper-village #v-lite {
+  font-size: 12px;
+  text-decoration: underline;
+}
 
-#paper-village .v-fresh{font-size:11px;color:#983f37;font-weight:600;padding:3px 7px}
-@media(max-width:700px){#paper-village .v-foot{flex-wrap:wrap;gap:4px}#paper-village .v-fresh:not([hidden]){order:3;width:100%;padding:4px 0}}
+#paper-village .v-fresh {
+  font-size: 11px;
+  color: #983f37;
+  font-weight: 600;
+  padding: 3px 7px;
+}
+@media (max-width: 700px) {
+  #paper-village .v-foot {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  #paper-village .v-fresh:not([hidden]) {
+    order: 3;
+    width: 100%;
+    padding: 4px 0;
+  }
+}
+.village-on #preview-dialog[open] {
+  animation: v-preview-fade 0.18s ease-out;
+}
+@keyframes v-preview-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

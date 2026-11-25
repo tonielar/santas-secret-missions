@@ -3,37 +3,44 @@
 import argparse
 import datetime
 import json
-import mimetypes
+import functools
+import threading
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from contextlib import contextmanager
 
 from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / 'dist'
-ORIGIN = 'https://village.test/'
+ORIGIN = None
 parser = argparse.ArgumentParser()
 parser.add_argument('--chromium', help='Use an existing Chromium executable')
 parser.add_argument('--screenshots', type=Path, help='Save review images in this directory')
 parser.add_argument('--software-gl', action='store_true', help='Use the bundled SwiftShader renderer')
+parser.add_argument('--motion-benchmark', action='store_true', help='Measure two complete turns instead of the functional suite')
 args = parser.parse_args()
 if args.screenshots:
     args.screenshots.mkdir(parents=True, exist_ok=True)
 
-def assets(route):
-    name = unquote(urlsplit(route.request.url).path).lstrip('/') or 'index.html'
-    file = (DIST / name).resolve()
-    if file.is_relative_to(DIST) and file.is_file():
-        route.fulfill(path=file, content_type=mimetypes.guess_type(str(file))[0] or 'application/octet-stream')
-    else:
-        route.abort()
+@contextmanager
+def http_fixture():
+    # A disposable loopback origin is needed for an actual service-worker install
+    # and offline reload. Only the allowlisted build is available to this test.
+    class Handler(SimpleHTTPRequestHandler):
+        def log_message(self, *_args):
+            pass
+    with ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Handler,directory=DIST)) as server:
+        thread=threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:yield f'http://127.0.0.1:{server.server_port}/'
+        finally:server.shutdown();thread.join()
 
 def setup(browser, width=1280, height=800, date='2026-11-25', **options):
     p = browser.new_page(viewport={'width':width,'height':height}, device_scale_factor=1,
-                         service_workers='block', **options)
-    p.route(ORIGIN+'**', assets)
+                         **options)
     stamp=int(datetime.datetime.fromisoformat(date+'T14:00:00+00:00').timestamp()*1000)
-    p.add_init_script(f'''{{ const NativeDate=Date;
+    p.add_init_script(f'''if (self===top) {{ const NativeDate=Date;
       window.Date=class CalendarDate extends NativeDate {{
         constructor(...args){{super(...(args.length ? args : [{stamp}]))}}
         static now(){{return {stamp}}}
@@ -83,10 +90,14 @@ def run(browser):
     p.keyboard.press('ArrowRight');stop(p,0)
     for n in range(1,13):
         p.locator('[data-do="next"]').click();stop(p,n)
-        if n in (1,2,3,6,7,10,11,12):
+        if args.screenshots:
             p.wait_for_timeout(650);shot(p,'stop-'+str(n).zfill(2))
     p.locator('[data-do="next"]').click();stop(p,0)
-    choose(p,1);p.locator('#v-enter').click();visible(p,'#toast')
+    choose(p,1);p.wait_for_timeout(850)
+    bounds=p.locator('#v-canvas').bounding_box()
+    def touch_door():
+        p.mouse.click(bounds['x']+bounds['width']*.645,bounds['y']+bounds['height']*.724)
+    touch_door();visible(p,'#toast')
     assert 'December 1, 2026' in p.locator('#toast').inner_text()
     p.locator('#v-enter').click();expect(p.locator('#mission-dialog')).to_be_hidden()
     choose(p,0);p.locator('#v-enter').click();visible(p,'#welcome-setup-dialog')
@@ -96,7 +107,21 @@ def run(browser):
     # Existing owner gesture opens and isolates the real unlocked application.
     for _ in range(7):p.locator('.v-foot>span').first.dispatch_event('click')
     expect(p.locator('body')).to_have_attribute('data-mode','test');visible(p,'#v-canvas')
-    choose(p,2);p.locator('#v-enter').click();visible(p,'#mission-dialog')
+    # Observe the actual central camera through the renderer in this test page.
+    p.evaluate('''async () => {
+      const T=await import('./village/vendor/three.module.min.js');
+      const original=T.PerspectiveCamera.prototype.updateMatrixWorld;
+      window.cameraTrace={radius:0,maximum:0};
+      T.PerspectiveCamera.prototype.updateMatrixWorld=function(...args) {
+        const r=Math.hypot(this.position.x,this.position.z);
+        Object.assign(cameraTrace,{radius:r,maximum:Math.max(r,cameraTrace.maximum)});
+        return original.apply(this,args);
+      };
+    }''')
+    choose(p,2);p.wait_for_timeout(850)
+    assert p.evaluate('cameraTrace.maximum') < .001
+    touch_door();visible(p,'#mission-dialog')
+    assert p.evaluate('cameraTrace.maximum') > 12
     assert p.locator('#assignment li').count()>=5
     assert p.locator('#bonus-text').inner_text().strip()
     visible(p,'#mission-dialog .dialog-sound')
@@ -113,16 +138,25 @@ def run(browser):
     p.locator('#open-creation').click();visible(p,'#creation-frame')
     assert p.locator('#creation-frame').get_attribute('sandbox')=='allow-scripts allow-forms'
     frame=p.frame_locator('#creation-frame')
-    frame.get_by_role('button',name='Count').click();expect(frame.get_by_role('button')).to_have_text('42')
+    expect(p.locator('#preview-feedback')).to_contain_text('ready')
+    p.locator('#preview-dialog').evaluate('(d) => Promise.all(d.getAnimations().map(a => a.finished))')
+    frame.get_by_role('button',name='Count').click()
+    expect(frame.get_by_role('button')).to_have_text('42')
+    shot(p,'creation-preview')
     p.locator('[data-close="preview-dialog"]').click()
     with p.expect_download() as download:p.locator('#download-creation').click()
     assert download.value.suggested_filename=='postcard.html'
     upload('#replace-creation','revised.html')
     p.locator('[data-close="mission-dialog"]').first.click();stop(p,2)
-    p.wait_for_timeout(1400);shot(p,'completed-forest')
+    expect(p.locator('button[data-stop="2"]')).to_have_class('v-done')
+    for _ in range(30):
+        p.wait_for_timeout(120)
+        if p.evaluate('cameraTrace.radius') < .02:break
+    assert p.evaluate('cameraTrace.radius') < .02
+    shot(p,'completed-forest')
     print('Mission panel, creation preview, download and replacement passed',flush=True)
     p.reload();choose(p,2);p.locator('#v-enter').click();visible(p,'#mission-dialog')
-    visible(p,'#undo-button');expect(p.locator('#creation-filename')).to_have_text('revised.html')
+    visible(p,'#undo-button');shot(p,'mission-panel');expect(p.locator('#creation-filename')).to_have_text('revised.html')
     p.locator('#delete-creation').click();p.locator('#confirm-delete').click();visible(p,'#upload-creation')
     p.locator('#undo-button').click();expect(p.locator('#complete-button')).to_be_enabled()
     p.locator('[data-close="mission-dialog"]').first.click()
@@ -138,7 +172,11 @@ def run(browser):
     expect(p.locator('#mission-dialog')).to_be_hidden()
     choose(p,0);p.mouse.move(x,y);p.mouse.wheel(450,0);stop(p,1)
     assert not errors,errors
-    p.close()
+    p.evaluate('() => navigator.serviceWorker.ready')
+    expect(p.locator('#offline-status')).to_contain_text('Ready offline',timeout=15000)
+    p.context.set_offline(True);p.reload();visible(p,'#v-canvas');choose(p,11)
+    p.context.set_offline(False);p.close()
+    print('Persistence, languages, original date mode and offline reload passed',flush=True)
 
     p=setup(browser,390,844,is_mobile=True,has_touch=True)
     p.goto(ORIGIN);stop(p,0);p.wait_for_timeout(650);shot(p,'welcome-mobile')
@@ -161,10 +199,37 @@ def run(browser):
     p.goto(ORIGIN);visible(p,'#welcome-setup-dialog');visible(p,'#calendar')
     p.close()
 
-with sync_playwright() as playwright:
+def benchmark(browser):
+    for width,height in [(1440,900),(390,844)]:
+        page=setup(browser,width,height,is_mobile=width<700,has_touch=width<700)
+        page.goto(ORIGIN);stop(page,0);page.wait_for_timeout(900)
+        result=page.evaluate("""() => new Promise(resolve => {
+          const delta=[];const next=document.querySelector('[data-do="next"]');
+          let start=0,last=0,steps=0,nextAt=0;
+          function measure(t) {
+            if(!start)start=t;
+            if(last)delta.push(t-last);last=t;
+            if(steps<26 && t>=nextAt) {next.click();steps++;nextAt=t+500;}
+            if(steps===26 && t>nextAt+450) {
+              const seconds=(t-start)/1000;
+              delta.sort((a,b)=>a-b);
+              resolve({width:innerWidth,height:innerHeight,frames:delta.length,seconds:+seconds.toFixed(2),
+                fps:+(delta.length/seconds).toFixed(1),p95ms:+delta[Math.floor(delta.length*.95)].toFixed(1)});
+              return;
+            }
+            requestAnimationFrame(measure);
+          }
+          requestAnimationFrame(measure);
+        })""")
+        print('Continuous navigation',json.dumps(result),flush=True)
+        page.close()
+
+with http_fixture() as ORIGIN, sync_playwright() as playwright:
     browser=playwright.chromium.launch(executable_path=args.chromium,
         args=['--use-angle=swiftshader','--enable-unsafe-swiftshader'] if args.software_gl else [])
     print('Chromium',browser.version,flush=True)
-    try:run(browser)
+    try:
+        if args.motion_benchmark:benchmark(browser)
+        else:run(browser)
     finally:browser.close()
-    print('PASS: circle, inputs, locks, onboarding, owner mode, languages, audio, mission lifecycle, local files, sandbox, reduced motion and fallback')
+    if not args.motion_benchmark:print('PASS: circle, inputs, locks, onboarding, owner mode, languages, audio, mission lifecycle, local files, sandbox, reduced motion and fallback')
