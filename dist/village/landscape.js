@@ -4,363 +4,422 @@ export const COUNT = 13,
   STEP = (2 * Math.PI) / COUNT,
   RADIUS = 29;
 export const wrap = (n) => ((n % COUNT) + COUNT) % COUNT;
-export const position = (a, r, y = 0) => new T.Vector3(Math.sin(a) * r, y, -Math.cos(a) * r);
-export const skies = [
-  '#294b59',
-  '#875a5b',
-  '#335f50',
-  '#598397',
-  '#835257',
-  '#396664',
-  '#725054',
-  '#263e60',
-  '#598398',
-  '#3a6157',
-  '#a46877',
-  '#4c426c',
-  '#724353',
+export const position = (a, radius, y = 0) => new T.Vector3(Math.sin(a) * radius, y, -Math.cos(a) * radius);
+
+// Paint, mountboard, landscape cutouts and foliage are mixed for each little set.
+const palettes = [
+  //                sky       board      hills      trees      crown     relief
+  ['#335f68', '#89ad96', '#779d8f', '#527b61', 'pine', 'banks'], // Welcome
+  ['#a26643', '#dba772', '#c28864', '#8f7954', 'round', 'hills'], // Gingerbread
+  ['#386751', '#83aa70', '#66906a', '#3d755c', 'pine', 'peaks'], // Forest
+  ['#4d87a0', '#a2d2d4', '#81acbf', '#87abbb', 'bare', 'peaks'], // Frostglass
+  ['#835257', '#dfc3b6', '#a67972', '#8f715b', 'round', 'hills'],
+  ['#396664', '#b4c9b4', '#73978a', '#597b5c', 'pine', 'banks'],
+  ['#725054', '#d4bdae', '#a88578', '#767658', 'round', 'hills'],
+  ['#263e60', '#abbdd1', '#68818e', '#4f8081', 'pine', 'peaks'],
+  ['#598398', '#c1d9db', '#92b3b8', '#95ac9a', 'bare', 'hills'],
+  ['#3a6157', '#acc2af', '#789581', '#426652', 'pine', 'peaks'],
+  ['#a46877', '#ead0ce', '#c09a9f', '#ba8c93', 'round', 'hills'],
+  ['#4c426c', '#c9c2d3', '#8c84a3', '#67738a', 'bare', 'banks'],
+  ['#724353', '#d6bfb0', '#a88086', '#798263', 'pine', 'peaks'],
 ];
-const forestStock = [
-  '#35665c',
-  '#927558',
-  '#2f6653',
-  '#9fbfc2',
-  '#8f715b',
-  '#597b5c',
-  '#767658',
-  '#4f8081',
-  '#95ac9a',
-  '#426652',
-  '#ba8c93',
-  '#67738a',
-  '#798263',
-];
-const grounds = [
-  '#c3d4c7',
-  '#e7c6a6',
-  '#a1bcaa',
-  '#c6dce0',
-  '#dfc3b6',
-  '#b4c9b4',
-  '#d4bdae',
-  '#abbdd1',
-  '#c1d9db',
-  '#acc2af',
-  '#ead0ce',
-  '#c9c2d3',
-  '#d6bfb0',
-];
-function tint(a, palette) {
-  const n = wrap(a / STEP),
-    lower = Math.floor(n),
-    v = T.MathUtils.smoothstep(n - lower, 0.28, 0.72);
-  return new T.Color(palette[lower]).lerp(new T.Color(palette[(lower + 1) % COUNT]), v);
+export const skies = palettes.map((p) => p[0]);
+const stock = new Map();
+function ink(hex) {
+  if (!stock.has(hex)) stock.set(hex, new T.Color(hex));
+  return stock.get(hex);
 }
+const blend = (a, b, t) => ink(a).clone().lerp(ink(b), t);
 function random(seed) {
-  let x = seed;
   return () => {
-    x = (1664525 * x + 1013904223) >>> 0;
-    return x / 4294967296;
+    seed = (1664525 * seed + 1013904223) >>> 0;
+    return seed / 4294967296;
   };
 }
-function strip(root, layers, colorAt, lit = true, segments = 312) {
-  const pts = [],
-    cols = [],
-    indices = [];
-  for (let i = 0; i <= segments; i++) {
-    const a = (i / segments) * Math.PI * 2;
-    layers.forEach((fn, j) => {
-      const [r, y] = fn(a, i);
-      pts.push(...position(a, r, y).toArray());
-      cols.push(...colorAt(a, j, i).toArray());
-    });
-    if (i > 0)
-      for (let j = 0; j < layers.length - 1; j++) {
-        const k = i * layers.length + j,
-          l = k - layers.length;
-        indices.push(l, k, k + 1, l, k + 1, l + 1);
-      }
+
+// A single draw produces many disconnected pieces of card. Duplicated boundary
+// vertices give neighbouring triangles a crisp, separately painted edge.
+class Sheets {
+  constructor() {
+    this.pts = [];
+    this.inks = [];
   }
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
-  g.setAttribute('color', new T.Float32BufferAttribute(cols, 3));
-  g.setIndex(indices);
-  g.computeVertexNormals();
-  const m = lit
-    ? new T.MeshStandardMaterial({ vertexColors: true, roughness: 1, side: T.DoubleSide })
-    : new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide });
-  const mesh = new T.Mesh(g, m);
-  mesh.receiveShadow = lit;
-  root.add(mesh);
-  return mesh;
-}
-function makePine() {
-  // Each bough has a central fold, two coloured faces and a narrow cut edge.
-  const xyz = [],
-    colors = [],
-    inds = [];
-  const face = (a, b, c, ink) => {
-    const k = xyz.length / 3;
-    xyz.push(...a, ...b, ...c);
-    const col = new T.Color(ink);
-    for (let n = 0; n < 3; n++) colors.push(col.r, col.g, col.b);
-    inds.push(k, k + 1, k + 2);
-  };
-  for (let side = 0; side < 3; side++) {
-    const a = (side * Math.PI) / 3;
-    for (const sign of [-1, 1]) {
-      const profile = [
-        [0, 0.08],
-        [0.32, 0.1],
-        [0.22, 0.25],
-        [0.3, 0.23],
-        [0.17, 0.44],
-        [0.245, 0.4],
-        [0.11, 0.61],
-        [0.18, 0.57],
-        [0.07, 0.79],
-        [0.11, 0.75],
-        [0, 1],
-      ];
-      const at = (x, y, d) => [Math.cos(a) * x + Math.sin(a) * d, y, -Math.sin(a) * x + Math.cos(a) * d];
-      for (let j = 1; j < profile.length; j++) {
-        const u = profile[j - 1],
-          v = profile[j],
-          shade =
-            sign < 0 ? ['#80ada1', '#70a495', '#74aa98'][side] : ['#b0c7a9', '#aac6ad', '#abd1b7'][side];
-        const tip = at(0, Math.min(0.88, (u[1] + v[1]) / 2 + 0.024), 0.035);
-        face(at(u[0] * sign, u[1], 0), at(v[0] * sign, v[1], 0), tip, j >= 9 ? '#f4f1d7' : shade);
-        if (j > 1)
-          face(
-            at(u[0] * sign, u[1], 0),
-            tip,
-            at(0, Math.min(0.88, (profile[j - 2][1] + u[1]) / 2 + 0.024), 0.035),
-            shade,
-          );
-        if ([2, 4, 6, 8, 10].includes(j)) {
-          const lerp = 0.8;
-          face(
-            at(v[0] * sign, v[1], 0.002),
-            at((u[0] * (1 - lerp) + v[0] * lerp) * sign, u[1] * (1 - lerp) + v[1] * lerp, 0.003),
-            at(0, v[1] - 0.018, 0.039),
-            '#e0e1c5',
-          );
-        }
-      }
+  triangle(a, b, c, paint, pb = paint, pc = paint) {
+    for (const [point, tone] of [
+      [a, paint],
+      [b, pb],
+      [c, pc],
+    ]) {
+      this.pts.push(...point);
+      this.inks.push(tone.r, tone.g, tone.b);
     }
   }
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(xyz, 3));
-  g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
-  g.setIndex(inds);
-  g.computeVertexNormals();
-  return g;
-}
-function starGeometry(points = 5) {
-  const positions = [],
-    colors = [];
-  for (let n = 0; n < points * 2; n++) {
-    const v = (k) => {
-      const a = Math.PI / 2 + (k * Math.PI) / points,
-        r = k % 2 ? 0.34 : 1;
-      return [Math.cos(a) * r, Math.sin(a) * r, 0];
-    };
-    positions.push(0, 0, 0.26, ...v(n), ...v(n + 1));
-    const c = new T.Color(n % 2 ? '#ddab56' : '#ffe5a2');
-    for (let j = 0; j < 3; j++) colors.push(c.r, c.g, c.b);
+  quad(a, b, c, d, paint, pb = paint, pc = paint, pd = paint) {
+    this.triangle(a, b, c, paint, pb, pc);
+    this.triangle(a, c, d, paint, pc, pd);
   }
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
-  g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
-  g.computeVertexNormals();
-  return g;
+  geometry() {
+    const geometry = new T.BufferGeometry();
+    geometry.setAttribute('position', new T.Float32BufferAttribute(this.pts, 3));
+    geometry.setAttribute('color', new T.Float32BufferAttribute(this.inks, 3));
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  }
+  place(parent, material, label) {
+    const mesh = new T.Mesh(this.geometry(), material);
+    mesh.name = label;
+    parent.add(mesh);
+    return mesh;
+  }
 }
-export function createLandscape(scene) {
-  const root = new T.Group();
-  scene.add(root);
-  const hill = (a) => 0.2 * Math.sin(a * 13) + 0.11 * Math.sin(a * 21),
-    path = (a) => 0.28 * Math.sin(a * 12) + 0.16 * Math.sin(a * 8);
-  strip(
-    root,
-    [
-      () => [0.1, -0.12],
-      (a) => [22.4 + path(a), -0.1],
-      () => [35, -0.1],
-      (a) => [44, 1 + hill(a)],
-      () => [63, 1.6],
-    ],
-    (a, j) => tint(a, grounds).multiplyScalar(j < 2 ? 0.93 : 1),
-  );
-  strip(
-    root,
-    [
-      (a) => [21.5 + path(a), -0.045],
-      (a) => [21.65 + path(a), 0.018],
-      (a) => [24.3 + path(a), 0.018],
-      (a) => [24.46 + path(a), -0.045],
-    ],
-    (a, j) => tint(a, grounds).lerp(new T.Color(j === 0 || j === 3 ? '#a49986' : '#d8bea3'), 0.7),
-  );
-  strip(
-    root,
-    [
-      (a) => [18.2 + 0.87 * Math.sin(a * 13 + 0.63), -0.065],
-      (a) => [18.36 + 0.87 * Math.sin(a * 13 + 0.63), 0.003],
-      (a) => [20.2 + 0.7 * Math.sin(a * 13 + 0.95), 0.005],
-    ],
-    (a, j) => tint(a, grounds).lerp(new T.Color(j === 0 ? '#a6bcae' : '#f6f0df'), j === 0 ? 0.26 : 0.59),
-  );
-  strip(
-    root,
-    [
-      (a) => [31.3 + 0.47 * Math.sin(a * 21), -0.063],
-      (a) => [32 + 0.4 * Math.sin(a * 21), 0.04],
-      (a) => [34.25 + 0.8 * Math.cos(a * 13), 0.08],
-    ],
-    (a, j) => tint(a, grounds).lerp(new T.Color('#f5f2df'), j === 0 ? 0.28 : 0.8),
-  );
-  // Staggered bands read as layers cut from different sheets of mountboard.
-  for (let row = 0; row < 3; row++) {
-    const dist = 57 - row * 5,
-      base = 7.8 - row * 1.58;
-    const crest = (a) =>
-      base +
-      1.04 * Math.sin(11 * a + row) +
-      0.86 * Math.cos(19 * a + row) +
-      0.68 * Math.cos(28 * a - row * 0.7);
-    strip(
-      root,
-      [() => [dist, -1], (a) => [dist, crest(a) - 0.16], (a) => [dist + 0.14, crest(a)]],
-      (a, j) =>
-        tint(a, skies)
-          .lerp(new T.Color(['#779d9e', '#678f91', '#53817f'][row]), 0.55)
-          .multiplyScalar(j === 2 ? 1.11 : 1),
-      false,
-      260,
+
+const polar = (a, r, y) => [Math.sin(a) * r, y, -Math.cos(a) * r];
+const polarPath = (a) => 22.78 + 0.14 * Math.sin(a * 8) + 0.18 * Math.sin(a * 12);
+const reliefs = {
+  banks: [0.2, 0.3, 0.46, 0.47, 0.32, 0.29, 0.42, 0.55, 0.56, 0.44, 0.35, 0.31, 0.38],
+  hills: [0.31, 0.46, 0.69, 0.82, 0.77, 0.53, 0.39, 0.37, 0.46, 0.67, 0.73, 0.65, 0.42],
+  peaks: [0.24, 0.36, 0.63, 1, 0.65, 0.48, 0.55, 0.85, 0.62, 0.36, 0.4, 0.53, 0.27],
+};
+function addDiorama(terrain, sky, index) {
+  const [paint, card, hills, , , silhouette] = palettes[index];
+  const start = (index - 0.5) * STEP,
+    end = start + STEP;
+  const face = ink(card),
+    faceLight = blend(card, '#fbf1ce', 0.14),
+    back = blend(card, hills, 0.43);
+  const kraft = ink('#b78861'),
+    fibre = ink('#f2d9ac'),
+    umber = ink('#865e45');
+  const darkSky = blend(paint, '#14292e', 0.45),
+    lowSky = blend(paint, '#d8d5b6', 0.16);
+  const top = -0.074,
+    bottom = -0.46,
+    gap = 0.0016;
+  const edgeRadius = (a) => 17.6 + 0.79 * Math.sin(a * 12 + 0.5) + 0.48 * Math.cos(a * 19);
+  const layers = reliefs[silhouette],
+    segments = layers.length - 1;
+  // The tapered foreground and the stepped main plot share exactly the same
+  // sector seam. A fine cross-section shows coloured liners and kraft stock.
+  for (let i = 0; i < segments; i++) {
+    const u = i / segments,
+      v = (i + 1) / segments;
+    const a = start + gap + (STEP - 2 * gap) * u,
+      b = start + gap + (STEP - 2 * gap) * v;
+    const ra = edgeRadius(a),
+      rb = edgeRadius(b);
+    const inner = blend(card, '#c8aa82', 0.29);
+    terrain.quad(
+      polar(a, 0.025, bottom),
+      polar(a, ra, bottom),
+      polar(b, rb, bottom),
+      polar(b, 0.025, bottom),
+      inner,
+    );
+    // Three visible narrow laminations follow the uneven hand-cut front edge.
+    for (const [hi, lo, dye] of [
+      [top, top - 0.065, faceLight],
+      [top - 0.065, top - 0.15, kraft],
+      [top - 0.15, top - 0.21, fibre],
+      [top - 0.21, bottom, umber],
+    ]) {
+      terrain.quad(polar(a, ra, lo), polar(b, rb, lo), polar(b, rb, hi), polar(a, ra, hi), dye);
+    }
+    terrain.quad(polar(a, ra, top), polar(a, 35, top), polar(b, 35, top), polar(b, rb, top), face);
+    terrain.quad(
+      polar(a, 35, top),
+      polar(a, 55, 0.22),
+      polar(b, 55, 0.22),
+      polar(b, 35, top),
+      back,
+      back,
+      faceLight,
+      face,
+    );
+    // The walking ribbon crosses the joins on top, like one length of cut paper.
+    const pa = polarPath(a),
+      pb = polarPath(b),
+      pathPaint = blend(card, '#f5deaf', 0.74);
+    for (const [innerWidth, outerWidth, y, color] of [
+      [-1.47, 1.47, -0.022, kraft],
+      [-1.39, 1.39, 0.012, pathPaint],
+    ]) {
+      // The walking path uses the full angle here, bridging the cardstock gap.
+      const aa = start + STEP * u,
+        bb = start + STEP * v;
+      terrain.quad(
+        polar(aa, pa + innerWidth, y),
+        polar(aa, pa + outerWidth, y),
+        polar(bb, pb + outerWidth, y),
+        polar(bb, pb + innerWidth, y),
+        color,
+      );
+    }
+    // Background sheets are individually dyed all the way up to the ceiling.
+    const aa = start + STEP * u,
+      bb = start + STEP * v;
+    sky.quad(
+      polar(aa, 58, -0.5),
+      polar(bb, 58, -0.5),
+      polar(bb, 58, 28),
+      polar(aa, 58, 28),
+      lowSky,
+      lowSky,
+      darkSky,
+      darkSky,
+    );
+    for (let row = 0; row < 2; row++) {
+      const dist = 51 - row * 5;
+      const sample = (j) => {
+        const h = layers[row ? segments - j : j];
+        return (row ? 2.1 : 3.8) + (row ? 2.65 : 4.15) * h;
+      };
+      const ya = sample(i),
+        yb = sample(i + 1);
+      const hInk = blend(hills, row ? '#52705e' : '#e5ddc2', row ? 0.15 : 0.25);
+      sky.quad(polar(a, dist, -0.6), polar(b, dist, -0.6), polar(b, dist, yb), polar(a, dist, ya), hInk);
+      const rim = blend(hills, '#f9e9c2', 0.45);
+      sky.quad(
+        polar(a, dist, ya),
+        polar(b, dist, yb),
+        polar(b, dist + 0.08, yb + 0.075),
+        polar(a, dist + 0.08, ya + 0.075),
+        rim,
+      );
+    }
+  }
+  // The vertical cuts are below the plot. The only bridge across is the path.
+  for (const a of [start + gap, end - gap]) {
+    for (const [hi, lo, dye] of [
+      [top, top - 0.09, faceLight],
+      [top - 0.09, top - 0.18, kraft],
+      [top - 0.18, top - 0.26, fibre],
+      [top - 0.26, bottom, umber],
+    ]) {
+      terrain.quad(
+        polar(a, edgeRadius(a), lo),
+        polar(a, 53, lo),
+        polar(a, 53, hi),
+        polar(a, edgeRadius(a), hi),
+        dye,
+      );
+    }
+    // A tiny bevel along the radial knife cut catches light at grazing angles.
+    const innerA = a + (a < start + STEP / 2 ? 0.0018 : -0.0018);
+    terrain.quad(
+      polar(a, 0.16, bottom + 0.002),
+      polar(a, edgeRadius(a), bottom + 0.002),
+      polar(innerA, edgeRadius(innerA), bottom + 0.003),
+      polar(innerA, 0.16, bottom + 0.003),
+      kraft,
+    );
+    terrain.quad(
+      polar(a, edgeRadius(a), top + 0.002),
+      polar(a, 52, top + 0.002),
+      polar(innerA, 52, top + 0.003),
+      polar(innerA, edgeRadius(innerA), top + 0.003),
+      faceLight,
     );
   }
-  const fir = makePine(),
+}
+
+function foliage(style) {
+  const cut = new Sheets();
+  const dark = ink('#83a796'),
+    pale = ink('#c7d2ae'),
+    light = ink('#e0dec2'),
+    snow = ink('#f5ebd0');
+  const bark = ink('#ac9878');
+  // The scored center stands proud of the two cut sides. A second, narrower
+  // leaf slots in at an angle, so a tree can be circled without disappearing.
+  const outline =
+    style === 'round'
+      ? [
+          [0, 0.27],
+          [0.16, 0.27],
+          [0.31, 0.42],
+          [0.35, 0.63],
+          [0.26, 0.81],
+          [0.13, 0.94],
+          [0, 1],
+        ]
+      : [
+          [0, 0.095],
+          [0.32, 0.105],
+          [0.19, 0.36],
+          [0.26, 0.34],
+          [0.12, 0.59],
+          [0.18, 0.57],
+          [0, 1],
+        ];
+  for (const [angle, size] of [
+    [0, 1],
+    [1.23, 0.64],
+  ]) {
+    const pt = (x, y, z) => [
+      size * x * Math.cos(angle) + z * Math.sin(angle),
+      y,
+      -size * x * Math.sin(angle) + z * Math.cos(angle),
+    ];
+    cut.quad(pt(-0.029, 0, 0), pt(0.029, 0, 0), pt(0.022, 0.37, 0), pt(-0.023, 0.37, 0), bark);
+    if (style === 'bare') {
+      const twig = (x, y, u, v, w) =>
+        cut.quad(pt(x - w, y, 0), pt(x + w, y, 0), pt(u + w * 0.37, v, 0), pt(u - w * 0.37, v, 0), light);
+      twig(0, 0.15, 0.035, 1, 0.029);
+      for (const sign of [-1, 1]) {
+        twig(0.012, 0.32, sign * 0.27, 0.58, 0.028);
+        twig(sign * 0.17, 0.5, sign * 0.14, 0.72, 0.016);
+        twig(0.025, 0.55, sign * 0.18, 0.79, 0.023);
+        twig(sign * 0.12, 0.73, sign * 0.12, 0.89, 0.012);
+      }
+      continue;
+    }
+    for (const sign of [-1, 1]) {
+      for (let i = 1; i < outline.length; i++) {
+        const [x0, y0] = outline[i - 1],
+          [x1, y1] = outline[i];
+        if (y0 === y1) continue;
+        const p0 = pt(x0 * sign, y0, 0),
+          p1 = pt(x1 * sign, y1, 0),
+          v0 = pt(0, y0, 0.035),
+          v1 = pt(0, y1, 0.035 * (1 - y1));
+        cut.quad(p0, p1, v1, v0, sign < 0 ? dark : pale);
+      }
+      if (style === 'pine') cut.triangle(pt(0, 1, 0), pt(sign * 0.047, 0.884, 0), pt(0, 0.896, 0.005), snow);
+      else
+        cut.triangle(
+          pt(0, 0.96, 0.005),
+          pt(sign * 0.26, 0.81, 0.004),
+          pt(0, 0.53, 0.037),
+          sign < 0 ? pale : light,
+        );
+    }
+  }
+  return cut.geometry();
+}
+
+function growTrees(root) {
+  const material = new T.MeshLambertMaterial({ vertexColors: true, side: T.DoubleSide, flatShading: true });
+  const geometries = new Map(),
+    hits = [],
     rng = random(884),
-    treeHits = [];
-  const forest = new T.MeshLambertMaterial({
-    vertexColors: true,
-    flatShading: true,
-    side: T.DoubleSide,
-  });
-  for (let sector = 0; sector < COUNT; sector++) {
-    const instances = [];
-    for (let n = 0; n < 22; n++) {
-      const dist = 36 + rng() * 11,
-        a = (sector + (rng() - 0.5) * 1.12) * STEP;
-      instances.push([a, dist, 1.7 + rng() * 4.7, '#799b93', 0.6]);
-    }
-    for (const [dx, dz, h] of [
-      [-6, -1, 5.4],
-      [-7.2, 2, 4.1],
-      [6.05, -1.6, 5.2],
-      [7.4, 0.2, 6.0],
-      [-5.2, -4.2, 5],
-      [5.4, -4.2, 4.4],
-      [-6.7, 4.4, 2.6],
-      [6.6, 4.1, 2.2],
-    ]) {
-      const a = sector * STEP + Math.atan2(dx, RADIUS - dz),
-        r = Math.hypot(dx, RADIUS - dz);
-      instances.push([
-        a,
-        r,
-        h * (0.84 + rng() * 0.22),
-        ['#4c7d75', '#5d8c7b', '#39685d', '#739789'][Math.floor(rng() * 4)],
-        0,
-      ]);
-    }
-    const trees = new T.InstancedMesh(fir, forest, instances.length),
-      dummy = new T.Object3D();
-    trees.castShadow = true;
-    trees.receiveShadow = true;
+    dummy = new T.Object3D();
+  palettes.forEach(([, , , crown, shape], index) => {
+    if (!geometries.has(shape)) geometries.set(shape, foliage(shape));
+    // Clusters leave open sight lines onto the paper joins and layered skyline.
+    const placements = [
+      [-5.7, -2.6, 4.9],
+      [-4.9, -3.9, 3.1],
+      [5.75, -2.2, 4.4],
+      [6.3, 0.55, 2.65],
+    ];
+    const n = index === 2 || index === 9 ? 10 : shape === 'bare' ? 4 : 6;
+    for (let i = 0; i < n; i++) placements.push([(rng() - 0.5) * 14, -7 - rng() * 4, 1.4 + rng() * 3.4]);
+    const trees = new T.InstancedMesh(geometries.get(shape), material, placements.length);
     trees.userData.kind = 'tree';
-    trees.userData.stop = sector;
-    instances.forEach(([a, r, h, color, y], i) => {
-      dummy.position.copy(position(a, r, y));
-      dummy.rotation.y = rng() * Math.PI;
-      dummy.scale.set(h * (0.8 + rng() * 0.27), h, h);
+    trees.userData.stop = index;
+    placements.forEach(([x, z, h], i) => {
+      const a = index * STEP + Math.atan2(x, RADIUS - z),
+        r = Math.hypot(x, RADIUS - z);
+      dummy.position.copy(position(a, r, 0));
+      dummy.rotation.set(0, -a + (rng() - 0.5) * 0.5, (rng() - 0.5) * 0.075);
+      dummy.scale.set(h * (0.91 + rng() * 0.19), h, h * 0.93);
       dummy.updateMatrix();
       trees.setMatrixAt(i, dummy.matrix);
-      trees.setColorAt(i, new T.Color(color).lerp(new T.Color(forestStock[sector]), 0.52));
+      trees.setColorAt(i, blend(crown, i % 3 ? '#bcbea2' : '#f1ddb7', rng() * 0.18));
     });
     trees.computeBoundingSphere();
     root.add(trees);
-    treeHits.push(trees);
-  }
-  const skyRoot = new T.Group();
-  root.add(skyRoot);
-  const points = [],
-    lights = [];
-  const sg = starGeometry(),
-    starMat = new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide });
-  const cordMat = new T.LineBasicMaterial({ color: '#baa47c', transparent: true, opacity: 0.5 });
-  for (let i = 0; i < COUNT; i++) {
-    const cradle = new T.Group();
-    cradle.position.copy(position(i * STEP, 46));
-    cradle.rotation.y = -i * STEP;
-    skyRoot.add(cradle);
-    for (const [x, y, s] of [
-      [-8.1, 10, 0.52],
-      [4.6, 9.8, 0.48],
-      [10.6, 11.3, 0.39],
+    hits.push(trees);
+  });
+  return hits;
+}
+
+function addMobiles(root) {
+  // Fixed stars, their threads and tiny punched pinpricks are each drawn as a
+  // batch. They are printed or hung behind the individual cardboard sets.
+  const mobiles = new Sheets(),
+    cords = [],
+    dots = [],
+    rng = random(891);
+  for (let n = 0; n < COUNT; n++) {
+    const angle = n * STEP,
+      local = (x, y, z = 0) => [
+        Math.sin(angle) * (46 - z) + x * Math.cos(angle),
+        y,
+        -Math.cos(angle) * (46 - z) + x * Math.sin(angle),
+      ];
+    for (const [x, y, r] of [
+      [-7.2, 10.4, 0.5],
+      [4.4, 10.1, 0.39],
     ]) {
-      const star = new T.Mesh(sg, starMat);
-      star.position.set(x, y, 0);
-      star.scale.setScalar(s);
-      cradle.add(star);
-      lights.push(star);
-      const line = new T.BufferGeometry().setFromPoints([
-        new T.Vector3(x, y + s, 0),
-        new T.Vector3(x, 25, 0),
-      ]);
-      cradle.add(new T.Line(line, cordMat));
+      const tip = (k) => {
+        const a = Math.PI / 2 + (k * Math.PI) / 5,
+          length = k % 2 ? r * 0.36 : r;
+        return local(x + length * Math.cos(a), y + length * Math.sin(a));
+      };
+      for (let k = 0; k < 10; k++)
+        mobiles.triangle(local(x, y, 0.09), tip(k), tip(k + 1), ink(k % 2 ? '#dfb268' : '#ffe5a3'));
+      cords.push(...local(x, y + r), ...local(x, 25));
     }
-    for (let n = 0; n < 65; n++) {
-      points.push(...position((i + rng() - 0.5) * STEP, 48, 5 + rng() * 17).toArray());
-    }
-    if ([0, 7, 11].includes(i)) {
+    for (let k = 0; k < 32; k++) dots.push(...local((rng() - 0.5) * 19, 5.3 + rng() * 16));
+    if ([0, 7, 11].includes(n)) {
       const moon = new T.Shape();
       moon.moveTo(0.48, 1.12);
       moon.bezierCurveTo(-1.36, 1.53, -1.57, -0.91, -0.03, -1.1);
       moon.bezierCurveTo(0.65, -1.24, 1.09, -0.83, 1.29, -0.39);
       moon.bezierCurveTo(-0.02, -0.91, -0.54, 0.57, 0.48, 1.12);
       const obj = new T.Mesh(
-        new T.ExtrudeGeometry(moon, { depth: 0.17, bevelEnabled: false, curveSegments: 18 }),
+        new T.ExtrudeGeometry(moon, { depth: 0.08, bevelEnabled: false, curveSegments: 8 }),
         new T.MeshBasicMaterial({ color: '#ffe3a2' }),
       );
-      obj.position.set(-2.9, 10.42, 0.1);
-      obj.scale.setScalar(1.13);
+      obj.position.set(...local(-2.9, 10.42, 0.1));
+      obj.rotation.order = 'YXZ';
+      obj.rotation.y = -angle;
       obj.rotation.z = -0.24;
-      cradle.add(obj);
-      cradle.add(
-        new T.Line(
-          new T.BufferGeometry().setFromPoints([
-            new T.Vector3(-2.9, 11.51, 0),
-            new T.Vector3(-2.9, 26, 0),
-          ]),
-          cordMat,
-        ),
-      );
+      root.add(obj);
+      cords.push(...local(-2.9, 11.51), ...local(-2.9, 25));
     }
   }
-  const stars = new T.BufferGeometry();
-  stars.setAttribute('position', new T.Float32BufferAttribute(points, 3));
-  skyRoot.add(
-    new T.Points(
-      stars,
-      new T.PointsMaterial({
-        color: '#f2dfb3',
-        size: 0.071,
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.9,
-      }),
+  const basic = new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide });
+  mobiles.place(root, basic, 'Folded hanging stars');
+  const attr = (pts) => {
+    const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
+    return g;
+  };
+  root.add(
+    new T.LineSegments(
+      attr(cords),
+      new T.LineBasicMaterial({ color: '#bda783', transparent: true, opacity: 0.55 }),
     ),
   );
-  return { treeHits, lights };
+  root.add(
+    new T.Points(
+      attr(dots),
+      new T.PointsMaterial({ color: '#f1dfac', size: 0.073, transparent: true, opacity: 0.85 }),
+    ),
+  );
+}
+
+export function createLandscape(scene) {
+  const root = new T.Group(),
+    terrain = new Sheets(),
+    sky = new Sheets();
+  scene.add(root);
+  for (let i = 0; i < COUNT; i++) addDiorama(terrain, sky, i);
+  // Both faces of the radial seams and all static reliefs share a draw apiece.
+  const ground = terrain.place(
+    root,
+    new T.MeshLambertMaterial({ vertexColors: true, side: T.DoubleSide }),
+    'Thirteen cut-card sectors',
+  );
+  ground.receiveShadow = true;
+  sky.place(
+    root,
+    new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide }),
+    'Thirteen painted backdrops',
+  );
+  addMobiles(root);
+  return { treeHits: growTrees(root), lights: [] };
 }

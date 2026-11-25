@@ -35,6 +35,7 @@
             state.name = typeof saved.name === 'string' && saved.name.trim() ? saved.name.trim().slice(0, 32) : '';
             // Older visitors keep their current calendar without being forced through setup.
             state.setupComplete = saved.setupComplete !== false;
+            state.elf = saved.elf === 'male' ? 'male' : 'female';
             const numbers = value => Array.isArray(value) ? [...new Set(value.filter(n => Number.isInteger(n) && n >= 1 && n <= 12))] : [];
             state.completed = numbers(saved.completed);
             state.opened = numbers(saved.opened);
@@ -393,7 +394,19 @@
     da: ['NORDPOLEN · DIN HEMMELIGE INVITATION', 'Velkommen til julemandens hemmelige missioner!', 'Før eventyret begynder, skal du vælge sprog og fortælle julemanden, hvad du hedder.', 'Vælg dit sprog', 'Hvad skal julemanden kalde dig?', 'Dit navn', 'Start mit juleeventyr →', 'Dit navn, stjerner og opfindelser gemmes på denne enhed. Du kan ændre navn og sprog senere.'],
     sv: ['NORDPOLEN · DIN HEMLIGA INBJUDAN', 'Välkommen till tomtens hemliga uppdrag!', 'Innan äventyret börjar, välj språk och berätta vad tomten ska kalla dig.', 'Välj ditt språk', 'Vad ska tomten kalla dig?', 'Ditt namn', 'Starta mitt juläventyr →', 'Ditt namn, stjärnor och skapelser sparas på den här enheten. Du kan ändra namn och språk senare.']
   };
+  const elfCopy = {
+    en: ['Choose your paper elf','Female elf','Male elf'],
+    da: ['Vælg din papirnisse','Nissepige','Nissedreng'],
+    sv: ['Välj din papperstomte','Tomteflicka','Tomtepojke']
+  };
+  function setElf(value) {
+    state.elf = value === 'male' ? 'male' : 'female';
+    saveState(); window.dispatchEvent(new Event('village-elf'));
+  }
   function setSetupLanguage(language) {
+    ['elf-legend','elf-female','elf-male'].forEach((id,i) => $(id).textContent = elfCopy[language][i]);
+    const exitLabels = { en: 'Owner test · Return to real calendar', da: 'Ejertest · Tilbage til den rigtige kalender', sv: 'Ägartest · Tillbaka till den riktiga kalendern' };
+    $('setup-exit-owner').textContent = exitLabels[language];
     const labels = setupCopy[language] || setupCopy.en;
     const ids = ['setup-eyebrow','welcome-setup-title','setup-description','setup-language-label','setup-name-label','setup-name','setup-begin','setup-privacy'];
     ids.forEach((id,i) => {
@@ -421,6 +434,7 @@
     if (!['en','da','sv'].includes(code)) return;
     state.name = name.slice(0,32);
     state.setupComplete = true;
+    setElf(document.querySelector('[name="setup-elf"]:checked').value);
     state.onboarded = false;
     state.onboardingStep = 'letter';
     saveState();
@@ -435,6 +449,7 @@
     setTimeout(() => openIntro(), 0);
   }
 
+  $('welcome-setup-dialog').addEventListener('cancel', e => e.preventDefault());
   readState();
   // Opening the hidden tester must never feel like losing the real calendar.
   // Borrow only the existing visitor's name and onboarding state; NEVER copy
@@ -445,7 +460,7 @@
       const normal = normalRaw ? JSON.parse(normalRaw) : null;
       if (normal && typeof normal.name === 'string' && normal.name.trim()
           && normal.setupComplete !== false) {
-        if (!state.name) state.name = normal.name.trim().slice(0, 32);
+        if (!state.name) { state.name = normal.name.trim().slice(0, 32); state.elf = normal.elf; }
         if (!state.setupComplete || !state.onboarded) {
           state.setupComplete = true;
           state.onboarded = true;
@@ -456,19 +471,23 @@
     } catch (_) { /* Normal and test progress remain safe if storage is unavailable. */ }
   }
   $('tester-banner').hidden = !LOCAL_TEST;
+  $('setup-exit-owner').hidden = !LOCAL_TEST;
+  $('setup-exit-owner').addEventListener('click', () => $('exit-test-mode').click());
   let secretTaps = 0;
   let secretTapTime = 0;
-  $('tester-secret').addEventListener('click', () => {
+  function ownerTap() {
     if (LOCAL_TEST) return;
-    if (Date.now() - secretTapTime > 4500) secretTaps = 0;
-    secretTapTime = Date.now();
-    if (++secretTaps < 7) return;
+    if (performance.now() - secretTapTime > 3000) secretTaps = 0;
+    if (!secretTaps) secretTapTime = performance.now();
+    if (++secretTaps < 5) return;
     secretTaps = 0;
     try {
       localStorage.setItem(OWNER_TEST_KEY, 'on');
       location.reload();
     } catch (_) { toast('Test mode requires browser storage. Try a normal browser window.'); }
-  });
+  }
+  $('tester-secret').addEventListener('click', ownerTap);
+  $('invitation-corner').addEventListener('click', ownerTap);
   $('exit-test-mode').addEventListener('click', () => {
     try {
       localStorage.removeItem(OWNER_TEST_KEY);
@@ -495,7 +514,7 @@
   document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeDialog(button.dataset.close)));
   document.querySelectorAll('dialog').forEach(dialog => {
     dialog.addEventListener('click', event => {
-      if (event.target !== dialog) return;
+      if (event.target !== dialog || dialog.id === 'welcome-setup-dialog') return;
       const rect = dialog.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     });
@@ -553,9 +572,9 @@
       return { ready: available(mission), done: state.completed.includes(number), date: unlockDate(mission) };
     },
     progress: () => state.completed.length,
+    elf: () => state.elf || 'female', setElf, elfLabels: lang => elfCopy[lang], ownerTap,
     test: TEST_MODE, resumeWelcome, openMission, openRules, openIntro, toast,
     install: () => openDialog('install-dialog', 'install-title')
   });
-  if (!document.body.classList.contains('village-pending')) setTimeout(resumeWelcome, 180);
-  else if (state.setupComplete && !state.onboarded) setTimeout(resumeWelcome, 180);
+  setTimeout(resumeWelcome, 0);
 })();

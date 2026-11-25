@@ -26,6 +26,13 @@ def build():
   standalone=standalone.replace('<script defer src="../'+filename+'"></script>','<script>'+ (ROOT/filename).read_text().replace('</script','<\\/script') +'</script>')
  standalone=re.sub(r'<script type="module" src="../village/main.js"[^>]*></script>', '', standalone).replace('<link rel="stylesheet" href="../village/village.css">','')
  standalone=re.sub(r"document.body.classList.toggle\('village-pending'.*?;","",standalone)
+ invite_css=(ROOT/'village/invitation.css').read_text()
+ for name,mime in [('fibres.png','image/png'),('invitation-stamp.svg','image/svg+xml')]:
+  invite_css=invite_css.replace(name,'data:'+mime+';base64,'+base64.b64encode((ROOT/'village'/name).read_bytes()).decode())
+ standalone=standalone.replace('<link rel="stylesheet" href="../village/invitation.css">','<style>'+invite_css+'</style>')
+ for variant in ['female','male']:
+  name='village/elf-'+variant+'.svg'
+  standalone=standalone.replace('src="../'+name+'"','src="data:image/svg+xml;base64,'+base64.b64encode((ROOT/name).read_bytes()).decode()+'"')
  icon='data:image/png;base64,'+base64.b64encode((ROOT/'icons/icon-192.png').read_bytes()).decode()
  apple='data:image/png;base64,'+base64.b64encode((ROOT/'icons/apple-touch-icon.png').read_bytes()).decode()
  standalone=standalone.replace('../icons/icon-192.png',icon).replace('../icons/apple-touch-icon.png',apple)

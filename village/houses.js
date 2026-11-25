@@ -182,15 +182,15 @@ function gingerbread(p, props) {
     // Gumdrops sit on the piped gable, slightly proud of the snowy edge.
     for (let j = 1; j <= 5; j++) {
       const t = j / 6;
-      ball(
+      disk(
         p,
         -0.24 + side * 2.53 * t,
         5.17 - 2.33 * t,
-        r.front + 0.22,
-        0.13,
-        0.14,
+        r.front + 0.25,
         0.125,
         [jam, '#82a388', '#e4ab59'][j % 3],
+        8,
+        0.052,
       );
     }
   }
@@ -222,32 +222,41 @@ function alpine(p, props) {
       [0.13, 6.2],
     ],
     '#8b6850',
-    3.6,
+    0.085,
   );
   for (const side of [-1, 1]) {
     const x = side * 3.07;
-    rod(p, x, 0.19, -0.06, 0.13, 6.45, -0.06, 0.28, evergreen, 4.28);
-    rod(p, x + 0.055 * side, 0.23, -0.06, 0.13 + 0.05 * side, 6.49, -0.06, 0.13, snow, 4.36);
+    rod(p, x, 0.19, -0.06, 0.13, 6.45, -0.06, 0.09, evergreen, 4.28);
+    rod(p, x + 0.055 * side, 0.23, -0.06, 0.13 + 0.05 * side, 6.49, -0.06, 0.065, snow, 4.36);
     rod(p, x, 0.19, front + 0.45, 0.13, 6.45, front + 0.45, 0.15, rye, 0.14);
-    // Alternating courses show the folds of the shingled paper roof.
-    for (let j = 0; j < 7; j++) {
-      const t = (j + 0.5) / 7,
+    // Each strip has one zigzag hem spanning the width of the fold.
+    for (let j = 0; j < 5; j++) {
+      const t = (j + 0.5) / 5,
         xx = x + (0.13 - x) * t,
         yy = 0.25 + 6.19 * t;
-      for (let k = 0; k < 4; k++) {
-        const zz = -1.6 + k * 0.94;
-        const shingle = box(
-          p,
-          xx + 0.12 * side,
-          yy,
-          zz,
-          0.12,
-          0.67,
-          0.87,
-          (j + k) % 3 === 0 ? '#e4ebdb' : j % 2 ? pine : '#698671',
-        );
-        shingle.rotation.z = side * 0.44;
-      }
+      const panel = group(p, xx + 0.125 * side, yy, 0);
+      panel.rotation.z = side * 0.44;
+      const crease = group(panel, 0, 0, 0);
+      crease.rotation.y = (side * Math.PI) / 2;
+      sheet(
+        crease,
+        0,
+        0,
+        0,
+        [
+          [-2.05, 0.48],
+          [2.05, 0.48],
+          [2.05, -0.32],
+          [1.31, -0.37],
+          [0.6, -0.27],
+          [-0.1, -0.38],
+          [-0.82, -0.29],
+          [-1.39, -0.39],
+          [-2.05, -0.31],
+        ],
+        j % 2 ? pine : '#b8c7b2',
+        0.048,
+      );
     }
   }
   for (let j = 0; j < 7; j++) {
@@ -282,7 +291,7 @@ function frost(p, props) {
     edge = '#e2f4ee',
     slate = '#567c94',
     iceBlue = '#8bb9cb';
-  box(p, 0, 1.87, -0.08, 3.26, 3.74, 3.16, wall);
+  box(p, 0, 1.87, 0.42, 3.26, 3.74, 2.16, wall);
   sheet(
     p,
     0,
@@ -298,7 +307,7 @@ function frost(p, props) {
       [1.62, 0],
     ],
     '#b1d7da',
-    3.16,
+    0.085,
   );
   for (const side of [-1, 1]) {
     const x = 2.08 * side,
@@ -315,7 +324,7 @@ function frost(p, props) {
   star(p, 0, 3.85, 1.6, 0.47, edge, 0.27);
   for (const side of [-1, 1]) {
     rod(p, side * 0.21, 3.8, 1.62, side * 0.58, 3.8, 1.62, 0.065, snow);
-    rod(p, 0, 3.6, 1.62, 0, 4.28, 1.62, 0.065, snow);
+    if (side === 1) rod(p, 0, 3.6, 1.62, 0, 4.28, 1.62, 0.065, snow);
     for (let j = 0; j < 3; j++) {
       const h = 0.75 + 0.49 * ((j + 1) % 3);
       const shard = ice(
@@ -438,16 +447,7 @@ function cog(p, x, y, z, r, main) {
   disk(g, 0, 0, 0, r * 0.82, main, 12);
   for (let i = 0; i < 8; i++) {
     const a = (i * Math.PI) / 4;
-    box(
-      g,
-      r * 0.82 * Math.sin(a),
-      r * 0.82 * Math.cos(a),
-      0,
-      r * 0.29,
-      r * 0.35,
-      0.16,
-      main,
-    ).rotation.z = -a;
+    box(g, r * 0.82 * Math.sin(a), r * 0.82 * Math.cos(a), 0, r * 0.29, r * 0.35, 0.16, main).rotation.z = -a;
   }
   disk(g, 0, 0, 0.11, r * 0.43, ivory, 10);
   disk(g, 0, 0, 0.18, r * 0.19, '#93633c', 8);
@@ -649,17 +649,7 @@ function upturnedRoof(p, x, y, z, w, d, rise, body) {
     d,
   );
   for (const side of [-1, 1]) {
-    rod(
-      p,
-      x + side * w * 0.42,
-      y + 0.2,
-      front + 0.025,
-      x,
-      y + rise + 0.25,
-      front + 0.025,
-      0.092,
-      '#d3ddc9',
-    );
+    rod(p, x + side * w * 0.42, y + 0.2, front + 0.025, x, y + rise + 0.25, front + 0.025, 0.092, '#d3ddc9');
     rod(
       p,
       x + side * w * 0.42,
@@ -1238,17 +1228,7 @@ function palaceTower(p, x, z, r, wall, spire) {
   );
   windowPane(g, 0, wall * 0.5, r * 0.95, r * 0.75, wall * 0.29, '#bf8974', true);
   for (const side of [-1, 1]) {
-    rod(
-      g,
-      side * r * 0.66,
-      wall * 0.09,
-      r * 0.71,
-      side * r * 0.66,
-      wall - 0.44,
-      r * 0.71,
-      0.08,
-      goldTrim,
-    );
+    rod(g, side * r * 0.66, wall * 0.09, r * 0.71, side * r * 0.66, wall - 0.44, r * 0.71, 0.08, goldTrim);
   }
   return g;
 }

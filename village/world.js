@@ -1,4 +1,5 @@
 import * as T from './vendor/three.module.min.js';
+import { buildPuppet } from './puppet.js';
 import { buildWelcome } from './welcome.js';
 import { buildHouse } from './houses.js';
 import { buildCharacter } from './characters.js';
@@ -14,7 +15,7 @@ export function createWorld(canvas, lang, events) {
   // software renderers and integrated GPUs from paying for four full scene passes.
   const renderer = new T.WebGLRenderer({
     canvas,
-    alpha: true,
+    alpha: false,
     antialias: false,
     powerPreference: 'high-performance',
   });
@@ -45,7 +46,7 @@ export function createWorld(canvas, lang, events) {
     houses = new Map(),
     hitTargets = [...scenery.treeHits];
   const santa = buildCharacter('santa'),
-    elf = buildCharacter('elf');
+    elf = buildPuppet(window.VillageCalendar.elf());
   scene.add(elf.root);
   santa.root.userData.kind = 'rules';
   santa.root.userData.stop = 0;
@@ -82,7 +83,7 @@ export function createWorld(canvas, lang, events) {
     propAction;
   let lastMovement = -2000;
   let dpr = software ? 0.72 : Math.min(devicePixelRatio || 1, 1.6);
-  const elfShadow = contactShadow(scene, 0, 0, 2.0, 1.13, 0.038);
+  let settledFov = 32;
   const cameraAt = new T.Vector3(),
     lookAt = new T.Vector3(),
     doorAt = new T.Vector3(),
@@ -90,6 +91,17 @@ export function createWorld(canvas, lang, events) {
     mouse = new T.Vector2();
   const anchorFromCamera = new T.Vector3(),
     projection = new T.Vector3();
+  // Paint the sky in the opaque colour buffer to avoid blending the full
+  // WebGL surface over a changing CSS gradient during every camera turn.
+  const skyCanvas = document.createElement('canvas');
+  skyCanvas.width = 2;
+  skyCanvas.height = 64;
+  const skyBrush = skyCanvas.getContext('2d');
+  const skyTexture = new T.CanvasTexture(skyCanvas);
+  skyTexture.colorSpace = T.SRGBColorSpace;
+  skyTexture.generateMipmaps = false;
+  skyTexture.minFilter = T.LinearFilter;
+  scene.background = skyTexture;
   const colors = skies.map((c) => new T.Color(c));
   function ensure(n) {
     if (houses.has(n)) return houses.get(n);
@@ -152,9 +164,9 @@ export function createWorld(canvas, lang, events) {
     renderer.setPixelRatio(dpr);
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.fov = small
-      ? Math.max(35, (2 * Math.atan(7.2 / (RADIUS * camera.aspect)) * 180) / Math.PI)
-      : Math.max(26, (2 * Math.atan(12.3 / (RADIUS * camera.aspect)) * 180) / Math.PI);
+    settledFov = small
+      ? Math.max(42, (2 * Math.atan(9.0 / (RADIUS * camera.aspect)) * 180) / Math.PI)
+      : Math.max(30, (2 * Math.atan(13.5 / (RADIUS * camera.aspect)) * 180) / Math.PI);
     camera.updateProjectionMatrix();
   }
   function animateReaction(kind) {
@@ -212,8 +224,13 @@ export function createWorld(canvas, lang, events) {
       col = colors[n].clone().lerp(colors[(n + 1) % COUNT], sm(f - n, 0.18, 0.82));
     const top = col.clone().multiplyScalar(0.55).getStyle(),
       low = col.clone().lerp(new T.Color('#c8c7ac'), 0.32).getStyle();
-    pad.style.background =
-      'linear-gradient(180deg,' + top + ',' + col.getStyle() + ' 47%,' + low + ' 91%)';
+    const gradient = skyBrush.createLinearGradient(0, 0, 0, 64);
+    gradient.addColorStop(0, top);
+    gradient.addColorStop(0.47, col.getStyle());
+    gradient.addColorStop(1, low);
+    skyBrush.fillStyle = gradient;
+    skyBrush.fillRect(0, 0, 2, 64);
+    skyTexture.needsUpdate = true;
   }
   function draw(now) {
     raf = requestAnimationFrame(draw);
@@ -277,6 +294,9 @@ export function createWorld(canvas, lang, events) {
       );
       lookAt.lerp(doorAt, zoom);
     }
+    // Periodic at the wrap seam in either direction. Keep the origin fixed.
+    const between = Math.sin(Math.PI * loc) ** 2;
+    camera.fov = settledFov + (reduce.matches ? 0 : between * (small ? 13 : 8)) * (1 - zoom);
     camera.position.copy(cameraAt);
     camera.lookAt(lookAt);
     camera.setViewOffset(
@@ -312,16 +332,13 @@ export function createWorld(canvas, lang, events) {
     }
     if (propAction) {
       const t = clock - propAction.time;
-      propAction.object.rotation.z =
-        propAction.z + (t < 0.8 ? Math.sin(t * 24) * 0.17 * (1 - t / 0.8) : 0);
+      propAction.object.rotation.z = propAction.z + (t < 0.8 ? Math.sin(t * 24) * 0.17 * (1 - t / 0.8) : 0);
       if (t >= 0.8) propAction = null;
     }
     const elfAngle = angle + (small ? 0.07 : 0.083);
     elf.root.position.copy(position(elfAngle, 22.6, 0.04));
     elf.root.rotation.y = -elfAngle - 0.18;
-    elf.root.scale.setScalar(small ? 1.43 : 1.55);
-    elfShadow.position.x = elf.root.position.x;
-    elfShadow.position.z = elf.root.position.z;
+    elf.root.scale.setScalar(small ? 1.32 : 1.38);
     elf.animate(clock, speed, reaction, reactionAge, reduce.matches);
     if (houses.get(0)?.base.visible) santa.animate(clock, 0, '', 10, reduce.matches);
     const displayTag = stop === 0 && Math.abs(speed) < 0.8 && zoom === 0;
@@ -338,10 +355,7 @@ export function createWorld(canvas, lang, events) {
     });
     weather.frame(reduce.matches ? 0 : clock, wrap(loc));
     weather.flakes(clock);
-    if (
-      Math.abs(loc - lastShadow) > 0.055 ||
-      (reactionAge < 0.9 && !reduce.matches && frames % 4 === 0)
-    ) {
+    if (Math.abs(loc - lastShadow) > 0.055 || (reactionAge < 0.9 && !reduce.matches && frames % 4 === 0)) {
       renderer.shadowMap.needsUpdate = true;
       lastShadow = loc;
     }
@@ -454,11 +468,7 @@ export function createWorld(canvas, lang, events) {
       if (visit !== null || e.ctrlKey) return;
       e.preventDefault();
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      target += clamp(
-        (delta * (e.deltaMode === 1 ? 15 : e.deltaMode === 2 ? height : 1)) / 450,
-        -0.7,
-        0.7,
-      );
+      target += clamp((delta * (e.deltaMode === 1 ? 15 : e.deltaMode === 2 ? height : 1)) / 450, -0.7, 0.7);
       inertia = 0;
       clearTimeout(wheelEnd);
       wheelEnd = setTimeout(() => {
@@ -477,6 +487,7 @@ export function createWorld(canvas, lang, events) {
   resize();
   raf = requestAnimationFrame(draw);
   return {
+    setVariant: elf.setVariant,
     navigate,
     activate,
     leave,

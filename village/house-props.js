@@ -7,7 +7,7 @@ export const ivory = '#fff0cb',
   gold = '#e3a953';
 const materials = new Map();
 const cube = new T.BoxGeometry(1, 1, 1);
-const sphere = new T.SphereGeometry(1, 10, 7);
+const sphere = new T.SphereGeometry(1, 7, 4);
 const profiles = new Map();
 
 function stock(color) {
@@ -74,7 +74,7 @@ export function rod(p, ax, ay, az, bx, by, bz, width, color, thickness = width) 
   return m;
 }
 
-export function disk(p, x, y, z, radius, color, sides = 16, depth = 0.09) {
+export function disk(p, x, y, z, radius, color, sides = 12, depth = 0.055) {
   const c = tube(p, x, y, z, radius, radius, depth, color, sides);
   c.rotation.x = Math.PI / 2;
   return c;
@@ -133,21 +133,35 @@ export function gable(
 ) {
   const front = z + d / 2,
     eave = y + wall;
-  sheet(
-    p,
-    x,
-    y,
-    front,
-    [
-      [-w / 2, 0],
-      [w / 2, 0],
-      [w / 2, wall],
-      [0, wall + rise],
-      [-w / 2, wall],
-    ],
-    body,
-    d,
-  );
+  // Two die-cut gables join slim side walls. Their edge remains visible at
+  // the corners and a tiny scored tab peeks out beneath each eave.
+  const outline = [
+    [-w / 2, 0],
+    [w / 2, 0],
+    [w / 2, wall],
+    [0.035, wall + rise],
+    [-w / 2, wall],
+  ];
+  sheet(p, x, y, front, outline, body, 0.065);
+  sheet(p, x, y, z - d / 2 + 0.065, outline, body, 0.065);
+  for (const side of [-1, 1]) {
+    box(p, x + side * (w / 2 - 0.04), y + wall / 2, z, 0.064, wall, d - 0.08, body);
+    const tab = group(p, x + side * (w / 2 - 0.06), eave - 0.19, front + 0.02);
+    sheet(
+      tab,
+      0,
+      0,
+      0,
+      [
+        [0, -0.21],
+        [side * -0.21, -0.09],
+        [side * -0.22, 0.16],
+        [0, 0.23],
+      ],
+      trim,
+      0.025,
+    );
+  }
   const half = w / 2 + over,
     length = Math.hypot(half, rise + (over * rise) / (w / 2));
   const angle = Math.atan2(rise, w / 2),
@@ -155,23 +169,23 @@ export function gable(
   for (const side of [-1, 1]) {
     const fold = group(p, x + (side * half) / 2, (bottom + eave + rise) / 2, z);
     fold.rotation.z = -side * angle;
-    box(fold, 0, 0, 0, length + 0.08, 0.18, d + over * 2, roof);
-    box(fold, side * 0.025, 0.111, 0, length + 0.04, 0.09, d + over * 2 + 0.065, cap);
-    // A row of irregular snow tabs folds over the hem.
-    const count = Math.ceil(d / 0.62);
-    for (let j = 0; j < count; j++) {
-      const t = (j + 0.5) / count;
-      box(
-        fold,
-        side * (length / 2 - 0.025),
-        0.045,
-        (t - 0.5) * (d + over * 2),
-        0.14,
-        0.13 + (j % 3) * 0.045,
-        0.28,
-        cap,
-      );
+    box(fold, 0, 0, 0, length + 0.065, 0.074, d + over * 2, roof);
+    // A single snow sheet with a cut scalloped hem leaves the eave peeking out.
+    const D = d + over * 2 + 0.025,
+      n = Math.max(4, Math.round(D / 0.61));
+    const paper = group(fold, 0, 0.066, 0);
+    paper.rotation.x = -Math.PI / 2;
+    const hem = [
+      [-side * (length / 2 + 0.02), -D / 2],
+      [-side * (length / 2 + 0.02), D / 2],
+    ];
+    for (let i = 0; i <= n; i++) {
+      const zz = D / 2 - (i * D) / n;
+      const reach = side * (length / 2 - 0.14 - 0.045 * Math.cos(i * 2.3));
+      hem.push([reach, zz]);
+      if (i < n) hem.push([reach + side * 0.11, zz - D / (2 * n)]);
     }
+    sheet(paper, 0, 0, 0, hem, cap, 0.05);
   }
   for (const side of [-1, 1]) {
     rod(
@@ -182,9 +196,9 @@ export function gable(
       x,
       eave + rise,
       front + over + 0.04,
-      0.15,
+      0.092,
       trim,
-      0.13,
+      0.08,
     );
   }
   return { front, eave, peak: eave + rise };
@@ -208,9 +222,22 @@ export function stripedPole(p, x, y, z, h, color, r = 0.14) {
 
 export function present(p, x, z, size, paper = '#ac343b', ribbon = gold) {
   const g = group(p, x, 0, z);
-  box(g, 0, size / 2, 0, size, size, size * 0.87, paper);
-  box(g, 0, size / 2, 0, size * 0.17, size + 0.035, size * 0.89, ribbon);
+  box(g, 0, size / 2, 0, size, size, size * 0.53, paper);
+  box(g, 0, size / 2, 0, size * 0.17, size + 0.035, size * 0.55, ribbon);
   box(g, 0, size + 0.025, 0, size + 0.025, 0.06, size * 0.16, ribbon);
+  sheet(
+    g,
+    0,
+    0,
+    size * 0.279,
+    [
+      [-size * 0.48, size * 0.97],
+      [-size * 0.24, size * 0.79],
+      [0, size * 0.96],
+    ],
+    '#d9ad79',
+    0.025,
+  );
   for (const side of [-1, 1]) {
     const loop = sheet(
       g,
@@ -320,18 +347,31 @@ export function reindeer(p, x, z, scale = 1) {
     [0.42, 0.96],
     [-0.48, 0.9],
   ];
-  sheet(g, 0, 0, 0.18, body, '#ad7044', 0.38);
+  sheet(g, 0, 0, 0.074, body, '#ad7044', 0.085);
+  sheet(
+    g,
+    0,
+    0,
+    0.084,
+    [
+      [-0.62, 1.55],
+      [0.17, 1.42],
+      [-0.47, 0.96],
+    ],
+    '#c48c5a',
+    0.018,
+  );
   for (const side of [-1, 1])
     for (const leg of [-1, 1]) {
       const xx = side * 0.5,
-        zz = leg * 0.19,
+        zz = leg * 0.077,
         forward = side * 0.13 * leg;
       rod(g, xx, 1.14, zz, xx + forward, 0.1, zz, 0.13, leg === 1 ? '#97603c' : '#7a503b');
       box(g, xx + forward + 0.03, 0.08, zz, 0.2, 0.13, 0.15, '#5a4037');
     }
-  ball(g, 0.69, 1.91, 0.2, 0.048, 0.055, 0.035, '#3b3335');
-  ball(g, 1.025, 1.84, 0.12, 0.084, 0.07, 0.1, '#ae3a36');
-  for (const zz of [-0.1, 0.13]) {
+  ball(g, 0.69, 1.91, 0.106, 0.048, 0.055, 0.035, '#3b3335');
+  ball(g, 1.025, 1.84, 0.08, 0.084, 0.07, 0.1, '#ae3a36');
+  for (const zz of [-0.04, 0.07]) {
     rod(g, 0.57, 2, zz, 0.34, 2.54, zz, 0.075, '#75533d');
     rod(g, 0.43, 2.35, zz, 0.18, 2.4, zz, 0.07, '#75533d');
     rod(g, 0.36, 2.48, zz, 0.46, 2.71, zz, 0.06, '#75533d');
@@ -354,24 +394,94 @@ export function reindeer(p, x, z, scale = 1) {
 export function snowman(p, x, z, scale = 1) {
   const g = group(p, x, 0, z);
   g.scale.setScalar(scale);
-  ball(g, 0, 0.62, 0, 0.76, 0.69, 0.69, snow);
-  ball(g, 0, 1.38, 0.03, 0.56, 0.53, 0.52, '#fff9ee');
-  ball(g, 0, 2.02, 0.08, 0.43, 0.43, 0.42, snow);
+  // Three folded paper rosettes overlap like the circles of a greeting card.
+  const circle = (y, z, r, dye) => {
+    const half = new T.Shape();
+    half.moveTo(0, -r);
+    for (let j = 0; j <= 8; j++) {
+      const a = -Math.PI / 2 + (j * Math.PI) / 8;
+      half.lineTo(r * Math.cos(a), r * Math.sin(a));
+    }
+    half.lineTo(0, -r);
+    const halfSheet = new T.ExtrudeGeometry(half, { depth: 0.035, bevelEnabled: false });
+    const left = cut(g, halfSheet, dye, 0, y, z);
+    left.rotation.y = 0.16;
+    const right = cut(g, halfSheet, '#d8e3da', 0, y, z);
+    right.rotation.y = Math.PI - 0.16;
+  };
+  circle(0.64, 0.015, 0.67, snow);
+  circle(1.38, 0.11, 0.51, '#f7f2e1');
+  circle(2.03, 0.19, 0.414, snow);
   for (const side of [-1, 1]) {
-    ball(g, side * 0.155, 2.1, 0.46, 0.045, 0.052, 0.038, '#353d42');
-    const arm = group(g, side * 0.41, 1.46, 0);
-    rod(arm, 0, 0, 0, side * 0.5, 0.26, 0.04, 0.07, '#695648');
-    rod(arm, side * 0.37, 0.17, 0.04, side * 0.41, 0.44, 0.06, 0.06, '#695648');
+    disk(g, side * 0.14, 2.09, 0.23, 0.038, '#35413d', 8, 0.02);
+    const arm = group(g, side * 0.39, 1.46, 0.05);
+    rod(arm, 0, 0, 0, side * 0.5, 0.26, 0.025, 0.065, '#695648', 0.025);
+    rod(arm, side * 0.37, 0.17, 0.025, side * 0.41, 0.44, 0.035, 0.055, '#695648', 0.025);
     if (side > 0) arm.name = 'waving-arm';
   }
-  const nose = tube(g, 0, 1.99, 0.55, 0, 0.095, 0.35, '#dc8947');
-  nose.rotation.x = Math.PI / 2;
-  tube(g, 0, 1.73, 0.04, 0.42, 0.45, 0.15, '#a4393f', 12);
-  box(g, 0.23, 1.46, 0.45, 0.18, 0.54, 0.075, '#b1464b').rotation.z = 0.22;
-  for (const y of [1.25, 1.45]) ball(g, 0, y, 0.54, 0.048, 0.05, 0.035, '#3b4144');
-  tube(g, 0, 2.4, 0.08, 0.53, 0.53, 0.09, '#40565a', 12);
-  tube(g, 0, 2.61, 0.08, 0.3, 0.34, 0.39, '#3d555b', 10);
-  tube(g, 0, 2.49, 0.08, 0.336, 0.346, 0.105, '#bd5858', 10);
+  sheet(
+    g,
+    0,
+    1.98,
+    0.245,
+    [
+      [-0.046, -0.058],
+      [0.24, 0.01],
+      [-0.046, 0.07],
+    ],
+    '#db8b4b',
+    0.055,
+  );
+  sheet(
+    g,
+    0,
+    1.72,
+    0.192,
+    [
+      [-0.41, 0.075],
+      [0.39, 0.075],
+      [0.34, -0.07],
+      [-0.37, -0.09],
+    ],
+    '#a94745',
+    0.033,
+  );
+  sheet(
+    g,
+    0,
+    1.7,
+    0.21,
+    [
+      [0.14, 0],
+      [0.31, 0.02],
+      [0.43, -0.42],
+      [0.29, -0.48],
+    ],
+    '#b14e48',
+    0.036,
+  );
+  for (const y of [1.25, 1.45]) disk(g, 0, y, 0.176, 0.047, '#3b4144', 8, 0.025);
+  const hat = group(g, 0, 2.38, 0.22);
+  hat.rotation.z = -0.095;
+  sheet(
+    hat,
+    0,
+    0,
+    0,
+    [
+      [-0.48, -0.05],
+      [0.48, -0.05],
+      [0.48, 0.04],
+      [0.28, 0.06],
+      [0.245, 0.43],
+      [-0.26, 0.43],
+      [-0.29, 0.06],
+      [-0.48, 0.05],
+    ],
+    '#40565a',
+    0.08,
+  );
+  box(hat, 0, 0.12, 0.017, 0.56, 0.088, 0.04, '#ba585a');
   return g;
 }
 

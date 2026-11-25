@@ -17,6 +17,7 @@
 <title>Santa's Secret Missions · North Pole Inventor Club</title>
 <link rel="stylesheet" href="./app.css">
 <link rel="stylesheet" href="./village/village.css">
+<link rel="stylesheet" href="./village/invitation.css">
 </head>
 <body data-mode="production">
 <script>
@@ -95,8 +96,14 @@ document.body.classList.toggle('village-pending', 'noModule' in document.createE
    </fieldset>
    <label class="setup-name-label" id="setup-name-label" for="setup-name">What should Santa call you?</label>
    <input id="setup-name" type="text" maxlength="32" required autocomplete="given-name" placeholder="Your name" aria-required="true">
+   <fieldset id="setup-elves"><legend id="elf-legend">Choose your paper elf</legend>
+    <label><input type="radio" name="setup-elf" value="female" checked><span><img src="./village/elf-female.svg" alt=""><b id="elf-female">Female elf</b></span></label>
+    <label><input type="radio" name="setup-elf" value="male"><span><img src="./village/elf-male.svg" alt=""><b id="elf-male">Male elf</b></span></label>
+   </fieldset>
    <button id="setup-begin" class="primary-btn" type="submit">Start my Christmas adventure →</button>
   </form>
+  <button id="setup-exit-owner" type="button" hidden>Owner test · Return to real calendar</button>
+  <span class="owner-corner" id="invitation-corner" aria-hidden="true"></span>
   <p id="setup-privacy" class="setup-privacy">Your name, stars and creations stay on this device. You can change your name and language later.</p>
  </div>
 </dialog>

@@ -1,0 +1,325 @@
+/* The first-visit invitation uses the village's locally printed paper and type. */
+#welcome-setup-dialog {
+  --invite-paper: #faf4e4;
+  --invite-ink: #253f38;
+  --invite-muted: #546057;
+  --invite-red: #a33933;
+  --invite-rule: #c5bdab;
+  width: min(494px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  border: 0;
+  border-radius: 4px;
+  padding: 0;
+  color: var(--invite-ink);
+  background: var(--invite-paper) url(fibres.png);
+  box-shadow:
+    0 3px 0 #dccfb4,
+    0 22px 80px rgb(9 28 26 / 40%);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #949682 var(--invite-paper);
+  font-family: 'Village Sans', system-ui, sans-serif;
+}
+#welcome-setup-dialog::backdrop {
+  background: rgb(14 37 38 / 66%);
+  backdrop-filter: blur(4px);
+}
+#welcome-setup-dialog .setup-card {
+  position: relative;
+  isolation: isolate;
+  color: var(--invite-ink);
+  padding: 19px clamp(22px, 6vw, 45px) 24px;
+  overflow-wrap: break-word;
+  text-align: center;
+  background:
+    repeating-linear-gradient(135deg, #964238 0 9px, #efddb9 9px 17px, #315c4e 17px 26px, #efddb9 26px 34px)
+      top left / 100% 6px no-repeat,
+    url(fibres.png),
+    var(--invite-paper);
+}
+#welcome-setup-dialog .setup-card::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 13px 10px 10px;
+  border: 1px solid #ccbea1;
+  pointer-events: none;
+}
+#welcome-setup-dialog .setup-sparkles {
+  display: none;
+}
+#welcome-setup-dialog .setup-elf-seal {
+  margin: -4px auto 2px;
+  width: 135px;
+  height: 59px;
+  font-size: 0;
+  background: url(invitation-stamp.svg) center / contain no-repeat;
+}
+#welcome-setup-dialog #setup-eyebrow {
+  margin: 2px 0 7px;
+  color: #8f4539;
+  font:
+    700 9px/1.45 'Village Sans',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.19em;
+  text-wrap: balance;
+}
+#welcome-setup-dialog #welcome-setup-title {
+  color: var(--invite-ink);
+  font:
+    400 clamp(29px, 5.5vw, 35px) / 1.04 'Village Serif',
+    Georgia,
+    serif;
+  letter-spacing: -0.033em;
+  max-width: 390px;
+  margin: 0 auto 6px;
+  text-wrap: balance;
+}
+#welcome-setup-dialog #setup-description {
+  margin: 0 auto 17px;
+  max-width: 355px;
+  color: var(--invite-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+#welcome-setup-dialog #welcome-setup-form {
+  position: relative;
+  padding: 14px 0 0;
+  margin: 0;
+  background: none;
+  text-align: left;
+}
+#welcome-setup-form::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: repeating-linear-gradient(to right, var(--invite-rule) 0 3px, transparent 3px 6px);
+}
+#welcome-setup-dialog fieldset {
+  border: 0;
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+#welcome-setup-dialog #setup-elves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#welcome-setup-dialog fieldset legend,
+#welcome-setup-dialog #setup-name-label {
+  display: block;
+  float: none;
+  padding: 0;
+  width: 100%;
+  margin: 0 0 5px;
+  color: var(--invite-ink);
+  text-align: left;
+  font:
+    650 13px/1.4 'Village Sans',
+    system-ui,
+    sans-serif;
+}
+#welcome-setup-dialog fieldset label {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+#welcome-setup-dialog fieldset input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#welcome-setup-dialog fieldset label > span {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 100%;
+  min-height: 42px;
+  border: 1px solid var(--invite-rule);
+  border-radius: 4px;
+  padding: 4px;
+  background: #fffbf0;
+  color: var(--invite-ink);
+  box-shadow: 0 2px 0 rgb(101 89 68 / 9%);
+  font-size: 16px;
+  line-height: 1.2;
+}
+#welcome-setup-dialog fieldset label b {
+  font:
+    600 12px/1.25 'Village Sans',
+    system-ui,
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+#welcome-setup-dialog fieldset input:checked + span {
+  border-color: #396657;
+  background: #e4ecdb;
+  box-shadow:
+    inset 0 0 0 0.5px #396657,
+    0 2px 0 #c2cdba;
+}
+#welcome-setup-dialog fieldset input:focus-visible + span,
+#welcome-setup-dialog #setup-name:focus-visible,
+#welcome-setup-dialog #setup-begin:focus-visible {
+  outline: 3px solid #995718;
+  outline-offset: 2px;
+}
+#welcome-setup-dialog #setup-elves label > span {
+  min-height: 77px;
+  padding: 4px 15px 4px 6px;
+  gap: 5px;
+  justify-content: center;
+}
+#welcome-setup-dialog #setup-elves img {
+  display: block;
+  flex: 0 1 67px;
+  width: min(52%, 67px);
+  max-width: 52%;
+  height: 67px;
+  object-fit: contain;
+}
+#welcome-setup-dialog #setup-elves label > span::after {
+  position: absolute;
+  content: '';
+  right: 6px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #b9bdac;
+  border-radius: 50%;
+  background: var(--invite-paper);
+}
+#welcome-setup-dialog #setup-elves input:checked + span::after {
+  border-color: #315a4e;
+  background: #315a4e;
+  box-shadow: inset 0 0 0 2px var(--invite-paper);
+}
+#welcome-setup-dialog #setup-name {
+  margin: 0 0 14px;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--invite-rule);
+  border-radius: 4px;
+  background: #fffcf2;
+  padding: 10px 12px;
+  font:
+    400 16px/1.4 'Village Sans',
+    system-ui,
+    sans-serif;
+  color: var(--invite-ink);
+}
+#welcome-setup-dialog #setup-name::placeholder {
+  color: #73776d;
+}
+#welcome-setup-dialog #setup-begin {
+  display: flex;
+  width: 100%;
+  min-height: 45px;
+  padding: 10px 12px;
+  justify-content: center;
+  text-align: center;
+  background: var(--invite-red);
+  color: #fff8e8;
+  border: 1px solid #93392d;
+  border-radius: 4px;
+  box-shadow: 0 3px 0 #713127;
+  font:
+    650 14px/1.4 'Village Sans',
+    system-ui,
+    sans-serif;
+}
+#welcome-setup-dialog #setup-begin:hover {
+  background: #903630;
+}
+#welcome-setup-dialog #setup-privacy {
+  max-width: 340px;
+  margin: 14px auto 0;
+  color: #63675a;
+  font-size: 11px;
+  line-height: 1.48;
+  text-align: center;
+  text-wrap: pretty;
+}
+@media (max-width: 440px), (max-height: 760px) {
+  #welcome-setup-dialog .setup-card {
+    padding: 17px 24px 22px;
+  }
+  #welcome-setup-dialog .setup-elf-seal {
+    height: 44px;
+  }
+  #welcome-setup-dialog #welcome-setup-title {
+    font-size: 29px;
+  }
+  #welcome-setup-dialog #setup-description {
+    margin-bottom: 12px;
+  }
+  #welcome-setup-dialog #welcome-setup-form {
+    padding-top: 10px;
+  }
+  #welcome-setup-dialog fieldset,
+  #welcome-setup-dialog #setup-name {
+    margin-bottom: 10px;
+  }
+  #welcome-setup-dialog #setup-privacy {
+    margin-top: 11px;
+  }
+}
+@media (max-width: 355px) {
+  #welcome-setup-dialog .setup-card {
+    padding-inline: 19px;
+  }
+  #welcome-setup-dialog fieldset {
+    gap: 5px;
+  }
+  #welcome-setup-dialog #setup-elves label > span {
+    flex-direction: column;
+    padding: 5px;
+  }
+  #welcome-setup-dialog #setup-elves img {
+    flex: none;
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (forced-colors: active) {
+  #welcome-setup-dialog fieldset input:checked + span {
+    border: 3px double Highlight;
+  }
+}
+
+#invitation-corner {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  z-index: 5;
+  touch-action: manipulation;
+}
+
+#setup-exit-owner {
+  border: 0;
+  background: none;
+  color: #723d30;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}

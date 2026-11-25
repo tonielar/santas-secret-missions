@@ -127,14 +127,40 @@ async function start() {
       }
     });
   if (api.test) {
+    ui.shell.querySelector('.v-foot>span').append(' · ' + c.test);
     const b = document.createElement('button');
     b.dataset.do = 'exit-test';
     b.textContent = c.test + ' · ' + c.leaveTest;
     ui.menu.querySelector('.v-menu-items').appendChild(b);
   }
-  // The original owner's footer gesture remains reachable from the route footer.
-  const secret = ui.shell.querySelector('.v-foot>span');
-  secret.addEventListener('click', () => document.getElementById('tester-secret').click());
+  const corner = document.createElement('span');
+  corner.className = 'owner-corner';
+  corner.id = 'square-corner';
+  corner.setAttribute('aria-hidden', 'true');
+  ui.shell.querySelector('#v-stage').append(corner);
+  corner.addEventListener('click', api.ownerTap);
+  const picker = document.createElement('fieldset');
+  const legend = document.createElement('legend');
+  const labels = api.elfLabels(lang);
+  legend.textContent = labels[0];
+  picker.append(legend);
+  picker.className = 'elf-menu-picker';
+  ['female', 'male'].forEach((variant, i) => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'menu-elf';
+    input.value = variant;
+    input.checked = api.elf() === variant;
+    input.addEventListener('change', () => api.setElf(variant));
+    label.append(input, labels[i + 1]);
+    picker.append(label);
+  });
+  ui.menu.querySelector('.v-languages').after(picker);
+  window.addEventListener('village-elf', () => {
+    picker.querySelector('[value="' + api.elf() + '"]').checked = true;
+    world?.setVariant(api.elf());
+  });
   function noticeFallback() {
     if (document.getElementById('v-lite')) return;
     const b = document.createElement('button');
