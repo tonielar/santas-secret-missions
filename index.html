@@ -16,14 +16,19 @@
 <meta name="description" content="Twelve top-secret Christmas inventions. A magical offline AI advent calendar for curious minds.">
 <title>Santa's Secret Missions · North Pole Inventor Club</title>
 <link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./village/village.css">
 </head>
 <body data-mode="production">
 <script>
 /* Owner-only convenience, not a security boundary: local switch affects this device only. */
 try {
-  if (localStorage.getItem('santa-owner-test-2026') === 'on') document.body.dataset.mode = 'test';
+  if (localStorage.getItem('paper-village-owner-test-2026') === 'on') document.body.dataset.mode = 'test';
 } catch (_) {}
 </script>
+<script>
+document.body.classList.toggle('village-pending', 'noModule' in document.createElement('script') && new URLSearchParams(location.search).get('view') !== 'classic' && location.protocol !== 'file:');
+</script>
+<div id="classic-view">
 <a class="skip" href="#calendar">Skip to the advent doors</a>
 <svg class="svg-bank" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
 <linearGradient id="hatRed" x2=".8" y2="1"><stop stop-color="#e96178"/><stop offset="1" stop-color="#b72d50"/></linearGradient><linearGradient id="skin" x2="0" y2="1"><stop stop-color="#ffe4bc"/><stop offset="1" stop-color="#f5bba0"/></linearGradient><linearGradient id="snowwhite" x2="0" y2="1"><stop stop-color="#fffefa"/><stop offset="1" stop-color="#f6dfdf"/></linearGradient>
@@ -56,6 +61,7 @@ try {
 
 </main>
 <footer><b id="tester-secret">A little imagination. A little AI. A lot of Christmas chaos.</b><div id="tester-banner" hidden><strong>🛠 Test Mode — all 12 doors unlocked on this device.</strong> Test stars and creations are kept separate. <button id="exit-test-mode" type="button">Return to real calendar</button></div><br>Made for curious minds. Approved by Santa. Absolutely not approved by Kevin.<br><button data-action="intro">Read the story &amp; change agent name</button> · <button data-action="rules">Santa's Golden Rules</button><br>Stars and creations stay on this device. Keep your original HTML files as a backup.<br><button data-action="install">Install &amp; offline help</button> · <span id="offline-status" role="status">Preparing offline magic…</span></footer>
+</div>
 <dialog id="mission-dialog" aria-labelledby="mission-title">
  <div class="modal-head"><button class="back-btn" data-close="mission-dialog">← Back to the village</button><span class="small-meta">NORTH POLE • TOP SECRET</span><button class="close-btn" data-close="mission-dialog" aria-label="Close mission">×</button></div>
  <div class="mission-header"><p class="mission-label" id="mission-label"></p><h2 id="mission-title" tabindex="-1"></h2><p class="skill"><span>Your AI superpower:</span> <span id="mission-skill" style="font-weight:normal"></span></p></div>
@@ -118,5 +124,6 @@ try {
 <script defer src="./preview.js"></script>
 <script defer src="./app.js"></script>
 <script defer src="./pwa.js"></script>
+<script type="module" src="./village/main.js" onerror="document.body.classList.remove('village-pending');window.VillageCalendar?.resumeWelcome()"></script>
 </body>
 </html>

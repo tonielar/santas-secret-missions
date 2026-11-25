@@ -48,7 +48,7 @@ def check():
  assert 'path: dist' in (ROOT/'.github/workflows/deploy.yml').read_text()
  assert (ROOT/'LICENSE').is_file() and 'MIT License' in (ROOT/'LICENSE').read_text(),'Approved MIT license must ship in repository'
  about=(ROOT/'about.html').read_text()
- assert '<html lang="en">' in about and 'santa-language-2026' in about and 'data-lang="da"' in about and 'data-lang="sv"' in about
+ assert '<html lang="en">' in about and 'paper-village-language-2026' in about and 'data-lang="da"' in about and 'data-lang="sv"' in about
  assert './' in about and 'tonielar/santas-secret-missions' in about
  assert (dist/'about.html').read_bytes()==(ROOT/'about.html').read_bytes(),'The public landing page must be deployed'
  assert './icons/icon-192.png' in about and 'href="./"' in about

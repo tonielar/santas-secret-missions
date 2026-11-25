@@ -2,11 +2,11 @@
 (() => {
   'use strict';
   const TEST_MODE = document.body.dataset.mode === 'test';
-  const OWNER_TEST_KEY = 'santa-owner-test-2026';
+  const OWNER_TEST_KEY = 'paper-village-owner-test-2026';
   const LOCAL_TEST = (() => { try { return localStorage.getItem(OWNER_TEST_KEY) === 'on'; } catch (_) { return false; } })();
   const DATA = window.SantaContent;
   // Keep the earlier calendar's keys so same-origin upgrades retain names and stars.
-  const STORAGE_KEY = `santas-secret-missions-2026-${TEST_MODE ? 'test' : 'olivia'}`;
+  const STORAGE_KEY = `paper-village-missions-2026-${TEST_MODE ? 'test' : 'olivia'}`;
   const $ = id => document.getElementById(id);
   const defaults = () => ({ name: '', completed: [], opened: [], onboarded: false, onboardingStep: 'letter', setupComplete: false });
   let state = defaults();
@@ -32,7 +32,7 @@
         try {
           const saved = JSON.parse(raw);
           if (saved && typeof saved === 'object') {
-            state.name = typeof saved.name === 'string' && saved.name.trim() ? saved.name.trim().slice(0, 32) : ''; 
+            state.name = typeof saved.name === 'string' && saved.name.trim() ? saved.name.trim().slice(0, 32) : '';
             // Older visitors keep their current calendar without being forced through setup.
             state.setupComplete = saved.setupComplete !== false;
             const numbers = value => Array.isArray(value) ? [...new Set(value.filter(n => Number.isInteger(n) && n >= 1 && n <= 12))] : [];
@@ -110,6 +110,7 @@
     $('new-mission-text').textContent = fresh.length === 1 ? '✦ TOP SECRET! A new mission is waiting for you.' : `✦ Santa left you ${fresh.length} secret missions to discover.`;
     $('open-next-mission').dataset.mission = fresh.length ? String(fresh[0].number) : '';
     updateName();
+    window.dispatchEvent(new Event('village-state'));
   }
 
   function buildCalendar() {
@@ -193,6 +194,7 @@
     if (!currentMission || !available(currentMission) || state.completed.includes(currentMission.number)) return;
     state.completed.push(currentMission.number);
     saveState(); renderCalendar(); updateCompletion(); celebrate();
+    window.dispatchEvent(new CustomEvent('village-celebration', { detail: currentMission.number }));
     toast(state.completed.length === 12 ? 'Santa says: “ALL 12! Christmas is saved! Kevin, put down that toaster.”' : `Santa says: “Another disaster defeated, Agent ${state.name}! Cookie department: issue a victory biscuit.”`);
     $('undo-button').focus({ preventScroll: true });
   }
@@ -423,7 +425,7 @@
     state.onboardingStep = 'letter';
     saveState();
     updateName();
-    try { localStorage.setItem('santa-language-2026',code); }
+    try { localStorage.setItem('paper-village-language-2026',code); }
     catch (_) { /* Names still work in this session without persistence. */ }
     if (window.SantaI18n && code !== window.SantaI18n.lang) {
       location.reload();
@@ -439,7 +441,7 @@
   // completed missions, opened doors or uploaded creations into test mode.
   if (TEST_MODE) {
     try {
-      const normalRaw = localStorage.getItem('santas-secret-missions-2026-olivia');
+      const normalRaw = localStorage.getItem('paper-village-missions-2026-olivia');
       const normal = normalRaw ? JSON.parse(normalRaw) : null;
       if (normal && typeof normal.name === 'string' && normal.name.trim()
           && normal.setupComplete !== false) {
@@ -536,6 +538,24 @@
   window.addEventListener('focus', refreshLocks);
   window.addEventListener('storage', event => { if (event.key === STORAGE_KEY) { readState(); renderCalendar(); updateCompletion(); } });
   setInterval(refreshLocks, 15000);
-  if (!state.setupComplete) setTimeout(beginSetup, 180);
-  else if (!state.onboarded) setTimeout(() => { if (state.onboardingStep === 'rules') openRules(true); else openIntro(); }, 180);
+  function resumeWelcome() {
+    if (!state.setupComplete) { beginSetup(); return true; }
+    if (!state.onboarded) {
+      if (state.onboardingStep === 'rules') openRules(true); else openIntro();
+      return true;
+    }
+    return false;
+  }
+  // Scene and classic doors share a single calendar authority, including the date recheck on entry.
+  window.VillageCalendar = Object.freeze({
+    status(number) {
+      const mission = DATA.missions[number - 1];
+      return { ready: available(mission), done: state.completed.includes(number), date: unlockDate(mission) };
+    },
+    progress: () => state.completed.length,
+    test: TEST_MODE, resumeWelcome, openMission, openRules, openIntro, toast,
+    install: () => openDialog('install-dialog', 'install-title')
+  });
+  if (!document.body.classList.contains('village-pending')) setTimeout(resumeWelcome, 180);
+  else if (state.setupComplete && !state.onboarded) setTimeout(resumeWelcome, 180);
 })();

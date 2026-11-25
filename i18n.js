@@ -3,7 +3,7 @@
   'use strict';
   const choices = new Set(['en','da','sv']);
   let lang = 'en';
-  try { const stored = localStorage.getItem('santa-language-2026'); if (choices.has(stored)) lang = stored; }
+  try { const stored = localStorage.getItem('paper-village-language-2026'); if (choices.has(stored)) lang = stored; }
   catch (_) {}
   const source = window.SantaContent;
   const pack = lang === 'da' ? window.SantaLocaleDA : lang === 'sv' ? window.SantaLocaleSV : null;
@@ -123,7 +123,7 @@
     button.setAttribute('aria-pressed',String(code === lang));
     button.addEventListener('click', () => {
       if (!choices.has(code) || code === lang) return;
-      try { localStorage.setItem('santa-language-2026',code); }
+      try { localStorage.setItem('paper-village-language-2026',code); }
       catch (_) { /* This browser cannot remember the preference. */ }
       location.reload();
     });

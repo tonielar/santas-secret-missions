@@ -2,11 +2,13 @@
 (() => {
   'use strict';
   const TEST_MODE = document.body.dataset.mode === 'test';
+  const OWNER_TEST_KEY = 'paper-village-owner-test-2026';
+  const LOCAL_TEST = (() => { try { return localStorage.getItem(OWNER_TEST_KEY) === 'on'; } catch (_) { return false; } })();
   const DATA = window.SantaContent;
   // Keep the earlier calendar's keys so same-origin upgrades retain names and stars.
-  const STORAGE_KEY = `santas-secret-missions-2026-${TEST_MODE ? 'test' : 'olivia'}`;
+  const STORAGE_KEY = `paper-village-missions-2026-${TEST_MODE ? 'test' : 'olivia'}`;
   const $ = id => document.getElementById(id);
-  const defaults = () => ({ name: 'Olivia', completed: [], opened: [], onboarded: false, onboardingStep: 'letter' });
+  const defaults = () => ({ name: '', completed: [], opened: [], onboarded: false, onboardingStep: 'letter', setupComplete: false });
   let state = defaults();
   let storageOK = true;
   let currentMission = null;
@@ -30,7 +32,9 @@
         try {
           const saved = JSON.parse(raw);
           if (saved && typeof saved === 'object') {
-            state.name = typeof saved.name === 'string' && saved.name.trim() ? saved.name.trim().slice(0, 32) : 'Olivia';
+            state.name = typeof saved.name === 'string' && saved.name.trim() ? saved.name.trim().slice(0, 32) : '';
+            // Older visitors keep their current calendar without being forced through setup.
+            state.setupComplete = saved.setupComplete !== false;
             const numbers = value => Array.isArray(value) ? [...new Set(value.filter(n => Number.isInteger(n) && n >= 1 && n <= 12))] : [];
             state.completed = numbers(saved.completed);
             state.opened = numbers(saved.opened);
@@ -75,7 +79,7 @@
   function closeDialog(id) { if ($(id).open) $(id).close(); }
 
   function updateName() {
-    $('agent-name').textContent = state.name;
+    $('agent-name').textContent = state.name || 'Agent';
     $('intro-story').textContent = DATA.story.replaceAll('{childName}', state.name);
     $('finale-text').textContent = `Agent ${state.name}, all 12 missions complete! Santa awards you the Golden Inventor Star. Kevin would like to be your assistant.`;
   }
@@ -106,6 +110,7 @@
     $('new-mission-text').textContent = fresh.length === 1 ? '✦ TOP SECRET! A new mission is waiting for you.' : `✦ Santa left you ${fresh.length} secret missions to discover.`;
     $('open-next-mission').dataset.mission = fresh.length ? String(fresh[0].number) : '';
     updateName();
+    window.dispatchEvent(new Event('village-state'));
   }
 
   function buildCalendar() {
@@ -189,6 +194,7 @@
     if (!currentMission || !available(currentMission) || state.completed.includes(currentMission.number)) return;
     state.completed.push(currentMission.number);
     saveState(); renderCalendar(); updateCompletion(); celebrate();
+    window.dispatchEvent(new CustomEvent('village-celebration', { detail: currentMission.number }));
     toast(state.completed.length === 12 ? 'Santa says: “ALL 12! Christmas is saved! Kevin, put down that toaster.”' : `Santa says: “Another disaster defeated, Agent ${state.name}! Cookie department: issue a victory biscuit.”`);
     $('undo-button').focus({ preventScroll: true });
   }
@@ -358,11 +364,122 @@
     }
   }
 
+
+  /* Snow drifts across actual cottages, not just the page header. */
+  function makeVillageSnow() {
+    const layer = $('village-snow');
+    if (!layer || layer.childElementCount) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+    const count = window.innerWidth <= 600 ? 36 : 60;
+    const height = $('main').scrollHeight + 70;
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+      const flake = document.createElement('span');
+      flake.className = 'village-snowflake';
+      flake.style.setProperty('--snow-left', ((i * 61.8 + Math.random() * 23) % 100).toFixed(2) + '%');
+      flake.style.setProperty('--snow-size', (2.5 + Math.random() * 4.2).toFixed(1) + 'px');
+      flake.style.setProperty('--snow-opacity', (.42 + Math.random() * .53).toFixed(2));
+      flake.style.setProperty('--snow-duration', (14 + Math.random() * 15).toFixed(1) + 's');
+      flake.style.setProperty('--snow-delay', (-Math.random() * 29).toFixed(1) + 's');
+      flake.style.setProperty('--snow-drift', (-30 + Math.random() * 60).toFixed(1) + 'px');
+      flake.style.setProperty('--snow-travel', height + 'px');
+      fragment.appendChild(flake);
+    }
+    layer.appendChild(fragment);
+  }
+  const setupCopy = {
+    en: ['NORTH POLE · YOUR SECRET INVITATION', "Welcome to Santa's Secret Missions!", 'Before your adventure begins, choose your language and tell Santa what to call you.', 'Choose your language', 'What should Santa call you?', 'Your name', 'Start my Christmas adventure →', 'Your name, stars and creations stay on this device. You can change your name and language later.'],
+    da: ['NORDPOLEN · DIN HEMMELIGE INVITATION', 'Velkommen til julemandens hemmelige missioner!', 'Før eventyret begynder, skal du vælge sprog og fortælle julemanden, hvad du hedder.', 'Vælg dit sprog', 'Hvad skal julemanden kalde dig?', 'Dit navn', 'Start mit juleeventyr →', 'Dit navn, stjerner og opfindelser gemmes på denne enhed. Du kan ændre navn og sprog senere.'],
+    sv: ['NORDPOLEN · DIN HEMLIGA INBJUDAN', 'Välkommen till tomtens hemliga uppdrag!', 'Innan äventyret börjar, välj språk och berätta vad tomten ska kalla dig.', 'Välj ditt språk', 'Vad ska tomten kalla dig?', 'Ditt namn', 'Starta mitt juläventyr →', 'Ditt namn, stjärnor och skapelser sparas på den här enheten. Du kan ändra namn och språk senare.']
+  };
+  function setSetupLanguage(language) {
+    const labels = setupCopy[language] || setupCopy.en;
+    const ids = ['setup-eyebrow','welcome-setup-title','setup-description','setup-language-label','setup-name-label','setup-name','setup-begin','setup-privacy'];
+    ids.forEach((id,i) => {
+      const node = $(id);
+      if (node) {
+        if (id === 'setup-name') node.placeholder = labels[i];
+        else node.textContent = labels[i];
+      }
+    });
+  }
+  function beginSetup() {
+    const preferred = window.SantaI18n && window.SantaI18n.lang || 'en';
+    const radio = document.querySelector('input[name="setup-language"][value="' + preferred + '"]');
+    if (radio) radio.checked = true;
+    setSetupLanguage(preferred);
+    $('setup-name').value = '';
+    openDialog('welcome-setup-dialog', 'welcome-setup-title');
+  }
+  function finishSetup(event) {
+    event.preventDefault();
+    const name = $('setup-name').value.trim();
+    const selected = document.querySelector('input[name="setup-language"]:checked');
+    if (!selected || !name) { $('welcome-setup-form').reportValidity(); return; }
+    const code = selected.value;
+    if (!['en','da','sv'].includes(code)) return;
+    state.name = name.slice(0,32);
+    state.setupComplete = true;
+    state.onboarded = false;
+    state.onboardingStep = 'letter';
+    saveState();
+    updateName();
+    try { localStorage.setItem('paper-village-language-2026',code); }
+    catch (_) { /* Names still work in this session without persistence. */ }
+    if (window.SantaI18n && code !== window.SantaI18n.lang) {
+      location.reload();
+      return;
+    }
+    closeDialog('welcome-setup-dialog');
+    setTimeout(() => openIntro(), 0);
+  }
+
   readState();
+  // Opening the hidden tester must never feel like losing the real calendar.
+  // Borrow only the existing visitor's name and onboarding state; NEVER copy
+  // completed missions, opened doors or uploaded creations into test mode.
+  if (TEST_MODE) {
+    try {
+      const normalRaw = localStorage.getItem('paper-village-missions-2026-olivia');
+      const normal = normalRaw ? JSON.parse(normalRaw) : null;
+      if (normal && typeof normal.name === 'string' && normal.name.trim()
+          && normal.setupComplete !== false) {
+        if (!state.name) state.name = normal.name.trim().slice(0, 32);
+        if (!state.setupComplete || !state.onboarded) {
+          state.setupComplete = true;
+          state.onboarded = true;
+          state.onboardingStep = 'letter';
+          saveState(); // Writes only to the isolated test key.
+        }
+      }
+    } catch (_) { /* Normal and test progress remain safe if storage is unavailable. */ }
+  }
+  $('tester-banner').hidden = !LOCAL_TEST;
+  let secretTaps = 0;
+  let secretTapTime = 0;
+  $('tester-secret').addEventListener('click', () => {
+    if (LOCAL_TEST) return;
+    if (Date.now() - secretTapTime > 4500) secretTaps = 0;
+    secretTapTime = Date.now();
+    if (++secretTaps < 7) return;
+    secretTaps = 0;
+    try {
+      localStorage.setItem(OWNER_TEST_KEY, 'on');
+      location.reload();
+    } catch (_) { toast('Test mode requires browser storage. Try a normal browser window.'); }
+  });
+  $('exit-test-mode').addEventListener('click', () => {
+    try {
+      localStorage.removeItem(OWNER_TEST_KEY);
+      location.reload();
+    } catch (_) { toast('Could not disable test mode. Check browser storage settings.'); }
+  });
   $('test-label').hidden = !TEST_MODE;
   $('storage-warning').hidden = storageOK;
   $('rules-list').innerHTML = DATA.rules.map(rule => `<section class="rule"><div><h3>${rule.title}</h3>${rule.body}</div></section>`).join('');
   buildCalendar();
+  makeVillageSnow();
   for (let i = 0; i < 20; i++) {
     const snow = document.createElement('span'); snow.className = 'flake';
     snow.style.setProperty('--left', `${i * 5 + Math.random() * 4}%`);
@@ -393,6 +510,8 @@
   $('undo-button').addEventListener('click', undoMission);
   $('help-button').addEventListener('click', openHelp);
   $('name-form').addEventListener('submit', event => { event.preventDefault(); saveName(); });
+  $('welcome-setup-form').addEventListener('submit', finishSetup);
+  document.querySelectorAll('input[name="setup-language"]').forEach(radio => radio.addEventListener('change', () => setSetupLanguage(radio.value)));
   $('start-button').addEventListener('click', () => {
     if (!saveName(false)) return;
     state.onboardingStep = 'rules'; saveState();
@@ -419,5 +538,24 @@
   window.addEventListener('focus', refreshLocks);
   window.addEventListener('storage', event => { if (event.key === STORAGE_KEY) { readState(); renderCalendar(); updateCompletion(); } });
   setInterval(refreshLocks, 15000);
-  if (!state.onboarded) setTimeout(() => { if (state.onboardingStep === 'rules') openRules(true); else openIntro(); }, 180);
+  function resumeWelcome() {
+    if (!state.setupComplete) { beginSetup(); return true; }
+    if (!state.onboarded) {
+      if (state.onboardingStep === 'rules') openRules(true); else openIntro();
+      return true;
+    }
+    return false;
+  }
+  // Scene and classic doors share a single calendar authority, including the date recheck on entry.
+  window.VillageCalendar = Object.freeze({
+    status(number) {
+      const mission = DATA.missions[number - 1];
+      return { ready: available(mission), done: state.completed.includes(number), date: unlockDate(mission) };
+    },
+    progress: () => state.completed.length,
+    test: TEST_MODE, resumeWelcome, openMission, openRules, openIntro, toast,
+    install: () => openDialog('install-dialog', 'install-title')
+  });
+  if (!document.body.classList.contains('village-pending')) setTimeout(resumeWelcome, 180);
+  else if (state.setupComplete && !state.onboarded) setTimeout(resumeWelcome, 180);
 })();

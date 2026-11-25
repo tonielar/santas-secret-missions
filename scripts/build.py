@@ -5,6 +5,7 @@ import hashlib,json,re,shutil,base64
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=['index.html','about.html','app.css','content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png','icons/icon.svg']
 
+ASSETS += sorted(p.relative_to(ROOT).as_posix() for p in (ROOT/'village').rglob('*') if p.is_file())
 def build():
  digest=hashlib.sha256()
  for path in ASSETS:
@@ -23,6 +24,8 @@ def build():
  standalone=test.replace('<link rel="stylesheet" href="../app.css">','<style>'+ (ROOT/'app.css').read_text() +'</style>')
  for filename in ['content.js','locale-da.js','locale-sv.js','locale-ui.js','i18n.js','storage.js','preview.js','app.js','pwa.js']:
   standalone=standalone.replace('<script defer src="../'+filename+'"></script>','<script>'+ (ROOT/filename).read_text().replace('</script','<\\/script') +'</script>')
+ standalone=re.sub(r'<script type="module" src="../village/main.js"[^>]*></script>', '', standalone).replace('<link rel="stylesheet" href="../village/village.css">','')
+ standalone=re.sub(r"document.body.classList.toggle\('village-pending'.*?;","",standalone)
  icon='data:image/png;base64,'+base64.b64encode((ROOT/'icons/icon-192.png').read_bytes()).decode()
  apple='data:image/png;base64,'+base64.b64encode((ROOT/'icons/apple-touch-icon.png').read_bytes()).decode()
  standalone=standalone.replace('../icons/icon-192.png',icon).replace('../icons/apple-touch-icon.png',apple)

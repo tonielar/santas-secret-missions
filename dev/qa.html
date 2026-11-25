@@ -16,8 +16,19 @@
 <meta name="description" content="Twelve top-secret Christmas inventions. A magical offline AI advent calendar for curious minds.">
 <title>Santa's Secret Missions · North Pole Inventor Club</title>
 <link rel="stylesheet" href="../app.css">
+<link rel="stylesheet" href="../village/village.css">
 </head>
 <body data-mode="test">
+<script>
+/* Owner-only convenience, not a security boundary: local switch affects this device only. */
+try {
+  if (localStorage.getItem('paper-village-owner-test-2026') === 'on') document.body.dataset.mode = 'test';
+} catch (_) {}
+</script>
+<script>
+document.body.classList.toggle('village-pending', 'noModule' in document.createElement('script') && new URLSearchParams(location.search).get('view') !== 'classic' && location.protocol !== 'file:');
+</script>
+<div id="classic-view">
 <a class="skip" href="#calendar">Skip to the advent doors</a>
 <svg class="svg-bank" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
 <linearGradient id="hatRed" x2=".8" y2="1"><stop stop-color="#e96178"/><stop offset="1" stop-color="#b72d50"/></linearGradient><linearGradient id="skin" x2="0" y2="1"><stop stop-color="#ffe4bc"/><stop offset="1" stop-color="#f5bba0"/></linearGradient><linearGradient id="snowwhite" x2="0" y2="1"><stop stop-color="#fffefa"/><stop offset="1" stop-color="#f6dfdf"/></linearGradient>
@@ -30,7 +41,7 @@
 <div class="snowfall" id="snow" aria-hidden="true"></div>
 <header>
  <div class="brand"><div class="brand-mark" aria-hidden="true">✦</div><div class="brand-word">NORTH POLE<br><span>INVENTOR CLUB</span></div></div>
- <nav class="top-actions" aria-label="Calendar tools"><button class="soft-btn intro-btn" data-action="intro">The story</button><button class="soft-btn install-trigger" data-action="install">Install</button><button class="soft-btn" data-action="rules"><span aria-hidden="true">✧</span> Golden Rules</button></nav>
+ <nav class="top-actions" aria-label="Calendar tools"><button class="soft-btn intro-btn" data-action="intro">The story</button><button class="soft-btn install-trigger" data-action="install">Install</button><button class="soft-btn gold-rules-button" data-action="rules"><span aria-hidden="true">✧</span> Golden Rules</button><div class="language-flags" role="group" aria-label="Choose calendar language"><button class="language-flag" type="button" data-lang="en" aria-label="English" title="English">🇬🇧</button><button class="language-flag" type="button" data-lang="da" aria-label="Dansk" title="Dansk">🇩🇰</button><button class="language-flag" type="button" data-lang="sv" aria-label="Svenska" title="Svenska">🇸🇪</button></div></nav>
 </header>
 <div id="test-label" class="test-label" hidden>TEST MODE — ALL DOORS UNLOCKED</div>
 <section class="hero" aria-labelledby="title">
@@ -42,18 +53,19 @@
 <div class="app-notices" aria-live="polite"><div class="update-notice" id="update-notice" hidden><span>Santa has a workshop upgrade ready.</span><button class="soft-btn" id="apply-update">Update app</button></div><div class="new-mission-notice" id="new-mission-notice" hidden><span id="new-mission-text"></span><button class="soft-btn" id="open-next-mission">Open the door →</button></div></div>
 <section class="progress-wrap" aria-label="Mission progress"><div class="progress-copy"><span class="star-seal" aria-hidden="true">✶</span><div><b>North Pole Chaos Resolved</b><small id="progress-message">Twelve tiny doors. Big inventor energy.</small></div></div><div class="track" id="progress-track" role="progressbar" aria-label="Completed missions" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0"><div class="track-fill" id="track-fill"></div></div><div class="progress-count" id="progress-count" aria-live="polite">0/12</div></section>
 <section class="finale" id="finale" hidden><h2>✦ Christmas saved. Inventor certified. ✦</h2><p id="finale-text"></p></section>
-<main class="village" id="main">
+<main class="village" id="main"><div class="village-snowfall" id="village-snow" aria-hidden="true"></div>
 <svg class="lights" viewBox="0 0 1200 65" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0Q150 70 300 6Q450 70 600 6Q750 70 900 6Q1050 70 1200 0" fill="none" stroke="#b09091" stroke-width="1.2"/><g fill="#edc26c"><ellipse cx="62" cy="25" rx="4" ry="7"/><ellipse cx="230" cy="27" rx="4" ry="7"/><ellipse cx="363" cy="27" rx="4" ry="7"/><ellipse cx="530" cy="27" rx="4" ry="7"/><ellipse cx="663" cy="27" rx="4" ry="7"/><ellipse cx="830" cy="27" rx="4" ry="7"/><ellipse cx="963" cy="27" rx="4" ry="7"/><ellipse cx="1130" cy="27" rx="4" ry="7"/></g><g fill="#dc89a1"><ellipse cx="142" cy="36" rx="4" ry="7"/><ellipse cx="442" cy="37" rx="4" ry="7"/><ellipse cx="742" cy="37" rx="4" ry="7"/><ellipse cx="1042" cy="37" rx="4" ry="7"/></g></svg>
 <div class="village-heading"><h2>THE WORKSHOP VILLAGE</h2><p>December 2026 <span>✧</span> A secret mission every other day</p></div>
 <svg class="forest left" aria-hidden="true" viewBox="0 0 100 180"><use href="#tree"/></svg><svg class="forest right" aria-hidden="true" viewBox="0 0 100 180"><use href="#tree"/></svg>
 <div class="calendar" id="calendar" aria-label="Twelve advent mission doors" tabindex="-1"></div>
-<div class="calendar-legend" aria-label="Door states"><span><i class="dot" aria-hidden="true"></i> Waiting for its day</span><span><i class="dot ready" aria-hidden="true"></i> Ready for you</span><span><i class="dot done" aria-hidden="true"></i> Mission complete</span></div>
+
 </main>
-<footer><b>A little imagination. A little AI. A lot of Christmas chaos.</b><br>Made for curious minds. Approved by Santa. Absolutely not approved by Kevin.<br><button data-action="intro">Read the story &amp; change agent name</button> · <button data-action="rules">Santa's Golden Rules</button><br>Stars and creations stay on this device. Keep your original HTML files as a backup.<br><button data-action="install">Install &amp; offline help</button> · <span id="offline-status" role="status">Preparing offline magic…</span></footer>
+<footer><b id="tester-secret">A little imagination. A little AI. A lot of Christmas chaos.</b><div id="tester-banner" hidden><strong>🛠 Test Mode — all 12 doors unlocked on this device.</strong> Test stars and creations are kept separate. <button id="exit-test-mode" type="button">Return to real calendar</button></div><br>Made for curious minds. Approved by Santa. Absolutely not approved by Kevin.<br><button data-action="intro">Read the story &amp; change agent name</button> · <button data-action="rules">Santa's Golden Rules</button><br>Stars and creations stay on this device. Keep your original HTML files as a backup.<br><button data-action="install">Install &amp; offline help</button> · <span id="offline-status" role="status">Preparing offline magic…</span></footer>
+</div>
 <dialog id="mission-dialog" aria-labelledby="mission-title">
  <div class="modal-head"><button class="back-btn" data-close="mission-dialog">← Back to the village</button><span class="small-meta">NORTH POLE • TOP SECRET</span><button class="close-btn" data-close="mission-dialog" aria-label="Close mission">×</button></div>
  <div class="mission-header"><p class="mission-label" id="mission-label"></p><h2 id="mission-title" tabindex="-1"></h2><p class="skill"><span>Your AI superpower:</span> <span id="mission-skill" style="font-weight:normal"></span></p></div>
- <div class="mission-body"><aside><div class="letter"><div class="wax" aria-hidden="true">✦</div><h3>INCOMING FROM SANTA</h3><div class="letter-text" id="santa-message"></div><p class="signature">— Santa Claus</p></div><p class="time-tag">About 20–40 minutes of creative mischief</p><div class="output"><strong>FINAL OUTPUT</strong><span>One complete standalone HTML file.</span></div></aside><section class="mission-task"><h3>Your secret assignment</h3><div class="assignment" id="assignment"></div><div class="bonus"><strong>✧ BONUS CHALLENGE · OPTIONAL</strong><p id="bonus-text"></p></div></section></div>
+ <div class="mission-body"><aside><div class="letter"><div class="wax" aria-hidden="true">✦</div><h3>INCOMING FROM SANTA</h3><div class="letter-text" id="santa-message"></div><p class="signature">— Santa Claus</p></div><p class="time-tag">About 20–40 minutes of creative mischief</p><div class="output"><strong>FINAL OUTPUT</strong><span>One complete standalone HTML file.</span></div></aside><section class="mission-task"><h3>Your secret assignment</h3><div class="assignment" id="assignment"></div><div class="bonus"><strong>✧ BONUS CHALLENGE · OPTIONAL</strong><p id="bonus-text"></p></div><div class="support-row" aria-label="Mission guidance"><button class="soft-btn rules-reminder" data-action="rules">✧ Santa's Golden Rules</button><button class="soft-btn help-btn" id="help-button">Help! I'm Stuck!</button></div></section></div>
  <div class="mission-bottom">
 <section class="creation-card" aria-labelledby="creation-heading">
  <div class="creation-card-heading"><span class="creation-emblem" aria-hidden="true">✧</span><div><h3 id="creation-heading">Your inventor's workbench</h3><p>Bring your HTML creation here and give it a test run.</p></div></div>
@@ -64,11 +76,31 @@
  <p class="creation-feedback" id="creation-feedback" role="status"></p>
  <p class="creation-backup">Keep the original HTML file in Files or Downloads. These local copies may be lost if website data is cleared or the app is removed. Uploading or deleting a file never changes your mission's star.</p>
 </section>
-<div class="support-row"><button class="rules-reminder" data-action="rules">✧ Don't forget Santa's Golden Rules!</button><button class="soft-btn help-btn" id="help-button">Help! I'm Stuck!</button></div><div class="complete-row" id="complete-row"><div class="complete-copy"><b id="completion-heading">Creation tested? Improvement made?</b><p id="completion-description">When you're happy with your invention, give yourself a well-earned star. Santa trusts you.</p></div><div class="complete-controls"><button class="primary-btn" id="complete-button">☆ Mission Completed!</button><button class="undo-btn" id="undo-button" hidden>Oops! Unmark this mission</button></div></div></div>
+<div class="complete-row" id="complete-row"><div class="complete-copy"><b id="completion-heading">Creation tested? Improvement made?</b><p id="completion-description">When you're happy with your invention, give yourself a well-earned star. Santa trusts you.</p></div><div class="complete-controls"><button class="primary-btn" id="complete-button">☆ Mission Completed!</button><button class="undo-btn" id="undo-button" hidden>Oops! Unmark this mission</button></div></div></div>
 </dialog>
 <dialog id="rules-dialog" class="handbook" aria-labelledby="rules-title"><div class="modal-head"><span class="small-meta">THE INVENTOR'S POCKET HANDBOOK</span><button class="close-btn" data-close="rules-dialog" aria-label="Close Golden Rules">×</button></div><div class="book-cover"><span class="book-star" aria-hidden="true">✦</span><h2 id="rules-title" tabindex="-1">Santa's Golden Rules</h2><p>You bring the ideas. AI helps you make them real.</p><div class="workflow" aria-label="Chat, plan, build, test, improve"><span>CHAT</span><i aria-hidden="true">→</i><span>PLAN</span><i aria-hidden="true">→</i><span>BUILD</span><i aria-hidden="true">→</i><span>TEST</span><i aria-hidden="true">→</i><span>IMPROVE</span></div></div><div class="rules-list" id="rules-list"></div><div class="handbook-guidance"><p>Use ordinary ChatGPT Chat to discuss and plan. Work can help build when it's available. Free ChatGPT works too — you don't need a paid subscription to take part.</p><p>You can read your missions and plan with AI on your phone or computer.</p><p>You can also import and test ordinary HTML creations inside Santa's Secret Missions.</p><p>For more advanced projects, a computer browser may work better.</p></div><div class="rules-footer"><button class="primary-btn" id="rules-next">Take Me to the Village →</button></div></dialog>
 <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title"><div class="modal-head"><span class="small-meta">SANTA'S INVENTOR HELPLINE</span><button class="close-btn" data-close="help-dialog" aria-label="Close help and return to mission">×</button></div><div class="help-content"><div class="mission-label" id="help-mission"></div><h2 class="help-title" id="help-title" tabindex="-1">Even elves need a little help.</h2><p class="help-subtitle">Start small. Reveal more only when you need it.</p><div class="help-tabs" role="group" aria-label="Help levels"><button class="help-tab" data-level="0" aria-pressed="true"><b>01</b>A little nudge</button><button class="help-tab" data-level="1" aria-pressed="false" disabled><b>02</b>The building plan</button><button class="help-tab" data-level="2" aria-pressed="false" disabled><b>03</b>Rescue prompt</button></div><div class="hint-panel"><h3 id="hint-title"></h3><p id="hint-text"></p><div id="rescue-container" hidden><textarea class="rescue-text" id="rescue-text" aria-label="Emergency Rescue Prompt" readonly spellcheck="false"></textarea><div class="copy-row"><p class="copy-note">Paste this into ChatGPT Chat.<br>Free or Work — your ideas are what matter.</p><button class="primary-btn" id="copy-button">Copy Prompt</button></div><p class="manual-copy" id="manual-copy" hidden>Automatic copying is unavailable. The prompt is selected — use Ctrl+C / ⌘C, or touch and hold to copy it.</p></div></div><div class="hint-nav"><button class="soft-btn" id="hint-back" disabled>← Previous hint</button><button class="soft-btn help-btn" id="hint-next">A little more help →</button></div><p class="hint-footnote">Using a hint doesn't cost you a star. Inventors ask for help!</p></div></dialog>
-<dialog id="intro-dialog" class="intro-dialog" aria-labelledby="intro-title"><div class="modal-head"><span class="small-meta">A VERY SECRET RECRUITMENT LETTER</span><button class="close-btn" data-close="intro-dialog" aria-label="Close introduction">×</button></div><div class="intro-content"><div class="intro-title"><svg viewBox="0 0 350 280" aria-hidden="true"><use href="#santa"/></svg><div class="eyebrow">NORTH POLE INVENTOR CLUB</div><h2 id="intro-title" tabindex="-1">You're on Santa's secret team.</h2></div><div class="story" id="intro-story"></div><label class="name-label" for="name-input">What should Santa call you?</label><form class="name-row" id="name-form"><input id="name-input" name="agentName" type="text" value="Olivia" maxlength="32" autocomplete="off" required aria-label="Your agent name"><button type="submit" class="soft-btn">Save name</button></form><div class="how-to"><b>YOUR INVENTOR KIT</b><p>✦ Open a new door every other day, December 1–23.</p><p>✦ Plan with AI, build your idea, then test and improve it.</p><p>✦ Save your creation as one HTML file. Import it here to try it, then mark the mission complete yourself.</p><p>✦ Need a hand? Santa's Golden Rules and three hints are always nearby.</p></div><button class="primary-btn" id="start-button">Take Me to Santa's Golden Rules →</button><p class="local-note">Your name, stars and imported creations stay on this device. No account, tracking or grading. Keep your original HTML files as a backup.</p></div></dialog>
+<dialog id="welcome-setup-dialog" class="welcome-setup-dialog" aria-labelledby="welcome-setup-title" aria-modal="true">
+ <div class="setup-card">
+  <span class="setup-sparkles" aria-hidden="true">✦ ❄ ✧</span>
+  <div class="setup-elf-seal" aria-hidden="true">🎅</div>
+  <p class="setup-eyebrow" id="setup-eyebrow">NORTH POLE · YOUR SECRET INVITATION</p>
+  <h2 id="welcome-setup-title" tabindex="-1">Welcome to Santa's Secret Missions!</h2>
+  <p id="setup-description">Before your adventure begins, choose your language and tell Santa what to call you.</p>
+  <form id="welcome-setup-form">
+   <fieldset class="setup-languages"><legend id="setup-language-label">Choose your language</legend>
+    <label><input type="radio" name="setup-language" value="en"><span>🇬🇧 <b>English</b></span></label>
+    <label><input type="radio" name="setup-language" value="da"><span>🇩🇰 <b>Dansk</b></span></label>
+    <label><input type="radio" name="setup-language" value="sv"><span>🇸🇪 <b>Svenska</b></span></label>
+   </fieldset>
+   <label class="setup-name-label" id="setup-name-label" for="setup-name">What should Santa call you?</label>
+   <input id="setup-name" type="text" maxlength="32" required autocomplete="given-name" placeholder="Your name" aria-required="true">
+   <button id="setup-begin" class="primary-btn" type="submit">Start my Christmas adventure →</button>
+  </form>
+  <p id="setup-privacy" class="setup-privacy">Your name, stars and creations stay on this device. You can change your name and language later.</p>
+ </div>
+</dialog>
+<dialog id="intro-dialog" class="intro-dialog" aria-labelledby="intro-title"><div class="modal-head"><span class="small-meta">A VERY SECRET RECRUITMENT LETTER</span><button class="close-btn" data-close="intro-dialog" aria-label="Close introduction">×</button></div><div class="intro-content"><div class="intro-title"><svg viewBox="0 0 350 280" aria-hidden="true"><use href="#santa"/></svg><div class="eyebrow">NORTH POLE INVENTOR CLUB</div><h2 id="intro-title" tabindex="-1">You're on Santa's secret team.</h2></div><div class="story" id="intro-story"></div><label class="name-label" for="name-input">What should Santa call you?</label><form class="name-row" id="name-form"><input id="name-input" name="agentName" type="text" value="" maxlength="32" autocomplete="off" required aria-label="Your agent name"><button type="submit" class="soft-btn">Save name</button></form><div class="how-to"><b>YOUR INVENTOR KIT</b><p>✦ Open a new door every other day, December 1–23.</p><p>✦ Plan with AI, build your idea, then test and improve it.</p><p>✦ Save your creation as one HTML file. Import it here to try it, then mark the mission complete yourself.</p><p>✦ Need a hand? Santa's Golden Rules and three hints are always nearby.</p></div><button class="primary-btn" id="start-button">Take Me to Santa's Golden Rules →</button><p class="local-note">Your name, stars and imported creations stay on this device. No account, tracking or grading. Keep your original HTML files as a backup.</p></div></dialog>
 
 <dialog id="preview-dialog" class="preview-dialog" aria-labelledby="preview-title">
  <div class="preview-toolbar"><div><span class="small-meta">YOUR CREATION · ISOLATED PREVIEW</span><h2 id="preview-title" tabindex="-1">Your creation</h2></div><div class="preview-tools"><button class="soft-btn" id="restart-preview">Restart</button><button class="soft-btn" id="expand-preview" aria-pressed="false">Expand</button><button class="primary-btn" data-close="preview-dialog">← Back to mission</button></div></div>
@@ -84,9 +116,14 @@
 <noscript><p style="padding:30px;text-align:center">Please enable JavaScript in your browser to open the advent doors. The calendar can work offline after its first successful online visit.</p></noscript>
 
 <script defer src="../content.js"></script>
+<script defer src="../locale-da.js"></script>
+<script defer src="../locale-sv.js"></script>
+<script defer src="../locale-ui.js"></script>
+<script defer src="../i18n.js"></script>
 <script defer src="../storage.js"></script>
 <script defer src="../preview.js"></script>
 <script defer src="../app.js"></script>
 <script defer src="../pwa.js"></script>
+<script type="module" src="../village/main.js" onerror="document.body.classList.remove('village-pending');window.VillageCalendar?.resumeWelcome()"></script>
 <script defer src="./qa-fixtures.js"></script></body>
 </html>

@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const mode = document.body.dataset.mode === 'test' ? 'test' : 'production';
-  const DATABASE = `santas-creations-2026-${mode}`;
+  const DATABASE = `paper-village-creations-2026-${mode}`;
   const STORE = 'creations';
   let databasePromise;
 
